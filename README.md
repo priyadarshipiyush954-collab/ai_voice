@@ -1,1 +1,7 @@
- A AI Voice assitent which hear your voice and do commands according to it 
+AI Voice 
+
+An AI voice assistent 
+
+# Tech stack 
+-Python 
+- Voice recogination module
