@@ -1,0 +1,18 @@
+{
+  "profile_name": "Primary User",
+  "samples_count": 3,
+  "created_at": "1730000000",
+  "mean_pitch_hz": 128.5,
+  "mean_spectral_centroid": 1640.2,
+  "mean_energy": 0.0825,
+  "verification_threshold": 0.7,
+  "status": "trained",
+  "centroid_vector": [
+    -12.45, 18.23, -5.61, 8.92, -3.14, 4.56, -1.82, 2.11,
+    -0.95, 1.45, -0.62, 0.88, -0.35, 0.42, -0.21, 0.15
+  ],
+  "std_vector": [
+    1.2, 1.5, 0.8, 0.9, 0.6, 0.7, 0.5, 0.4,
+    0.3, 0.4, 0.3, 0.2, 0.2, 0.1, 0.1, 0.1
+  ]
+}
