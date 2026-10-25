@@ -1,0 +1,7 @@
+-r requirements.txt
+faster-whisper>=1.0.0
+SpeechRecognition>=3.10.0
+pyttsx3>=2.90
+scipy>=1.11.0
+sounddevice>=0.4.6
+uvicorn[standard]>=0.30.0
