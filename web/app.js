@@ -1,10 +1,14 @@
-/**
- * Ether AI Voice - Frontend Application Controller
- * High-Accuracy Speech Recognition, Voice Training Studio,
- * Web Analysis, and Spotify Media Controller.
- */
+/* ============================================================
+ *  Ether AI Voice — Frontend Controller
+ *  Production-quality vanilla JS · No frameworks · No Spotify
+ * ============================================================ */
 
-// State Management
+'use strict';
+
+/* ────────────────────────────────────────────────────────────
+ *  §0  Application State
+ * ──────────────────────────────────────────────────────────── */
+
 const state = {
   isListening: false,
   isRecordingSample: false,
@@ -18,316 +22,586 @@ const state = {
   activeProfile: null,
   currentEngine: 'whisper',
   whisperModel: 'base.en',
-  speechSynth: window.speechSynthesis || null,
   recognition: null
 };
 
-// DOM Elements
-const micBtn = document.getElementById('micBtn');
-const micStatusText = document.getElementById('micStatusText');
-const visualizerOverlay = document.getElementById('visualizerOverlay');
-const visualizerStateText = document.getElementById('visualizerStateText');
-const waveformCanvas = document.getElementById('waveformCanvas');
-const liveTranscript = document.getElementById('liveTranscript');
-const confidenceBadge = document.getElementById('confidenceBadge');
-const engineBadge = document.getElementById('engineBadge');
-const responseSummary = document.getElementById('responseSummary');
-const responseDetails = document.getElementById('responseDetails');
-const speakResponseBtn = document.getElementById('speakResponseBtn');
+/* ────────────────────────────────────────────────────────────
+ *  §1  Floating Particles Canvas Animation
+ * ──────────────────────────────────────────────────────────── */
 
-// Voice Training Elements
-const speakerNameInput = document.getElementById('speakerNameInput');
-const recordSampleBtn = document.getElementById('recordSampleBtn');
-const recordSampleBtnText = document.getElementById('recordSampleBtnText');
-const resetEnrollmentBtn = document.getElementById('resetEnrollmentBtn');
-const enrollmentStepText = document.getElementById('enrollmentStepText');
-const meterPitch = document.getElementById('meterPitch');
-const meterTimbre = document.getElementById('meterTimbre');
-const meterEnergy = document.getElementById('meterEnergy');
-const profilesContainer = document.getElementById('profilesContainer');
-const verifyVoiceBtn = document.getElementById('verifyVoiceBtn');
-const verifyResult = document.getElementById('verifyResult');
-const refreshProfilesBtn = document.getElementById('refreshProfilesBtn');
+function initParticles() {
+  const canvas = document.getElementById('particlesCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-// Web Analyzer Elements
-const webQueryInput = document.getElementById('webQueryInput');
-const webSearchBtn = document.getElementById('webSearchBtn');
-const webResultsContainer = document.getElementById('webResultsContainer');
+  const PARTICLE_COUNT_MIN = 60;
+  const PARTICLE_COUNT_MAX = 80;
+  const CONNECTION_DISTANCE = 120;
+  const LINE_OPACITY = 0.05;
+  const prefersReducedMotion =
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Spotify Elements
-const spAlbumArt = document.getElementById('spAlbumArt');
-const spTrackName = document.getElementById('spTrackName');
-const spTrackArtist = document.getElementById('spTrackArtist');
-const spProgressFill = document.getElementById('spProgressFill');
-const spPlayPauseBtn = document.getElementById('spPlayPauseBtn');
-const spPrevBtn = document.getElementById('spPrevBtn');
-const spNextBtn = document.getElementById('spNextBtn');
-const spotifySearchInput = document.getElementById('spotifySearchInput');
-const spotifySearchBtn = document.getElementById('spotifySearchBtn');
-const spotifyStatusNote = document.getElementById('spotifyStatusNote');
+  let particles = [];
+  let animId = null;
 
-// Settings Elements
-const engineSelect = document.getElementById('engineSelect');
-const whisperModelSelect = document.getElementById('whisperModelSelect');
-const energyThresholdSlider = document.getElementById('energyThresholdSlider');
-const energyVal = document.getElementById('energyVal');
-const wakeSensitivitySlider = document.getElementById('wakeSensitivitySlider');
-const wakeVal = document.getElementById('wakeVal');
-const noiseCalibrationBtn = document.getElementById('noiseCalibrationBtn');
-const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-const headerEngineLabel = document.getElementById('headerEngineLabel');
-
-// ==========================================
-// 1. Navigation & Tabs
-// ==========================================
-document.querySelectorAll('.nav-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(t => {
-      t.classList.remove('active');
-      t.setAttribute('aria-selected', 'false');
-    });
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-    tab.classList.add('active');
-    tab.setAttribute('aria-selected', 'true');
-    const targetId = `tab-${tab.getAttribute('data-tab')}`;
-    const targetPane = document.getElementById(targetId);
-    if (targetPane) targetPane.classList.add('active');
-  });
-});
-
-// Prompt Chips Click
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const prompt = chip.getAttribute('data-prompt');
-    executeVoiceQuery(prompt);
-  });
-});
-
-// ==========================================
-// 2. Web Audio API & Waveform Visualizer
-// ==========================================
-async function initAudioContext() {
-  if (state.audioContext) return;
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    state.audioContext = new AudioContext();
-    state.analyser = state.audioContext.createAnalyser();
-    state.analyser.fftSize = 256;
-
-    state.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const source = state.audioContext.createMediaStreamSource(state.micStream);
-    source.connect(state.analyser);
-
-    const visualizerWrapper = document.querySelector('.visualizer-wrapper');
-    if (visualizerWrapper) visualizerWrapper.classList.add('active');
-    drawVisualizer();
-  } catch (err) {
-    console.warn('Microphone access for visualizer deferred:', err);
-    if (visualizerStateText) visualizerStateText.textContent = 'Microphone permission needed';
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
+
+  function createParticles() {
+    const count =
+      PARTICLE_COUNT_MIN +
+      Math.floor(Math.random() * (PARTICLE_COUNT_MAX - PARTICLE_COUNT_MIN + 1));
+    particles = [];
+    for (let i = 0; i < count; i++) {
+      const opacity = 0.15 + Math.random() * 0.2; // 0.15 – 0.35
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 1 + Math.random() * 2, // 1 – 3 px
+        vx: (Math.random() - 0.5) * 0.6, // -0.3 – 0.3
+        vy: (Math.random() - 0.5) * 0.6,
+        opacity
+      });
+    }
+  }
+
+  function drawStatic() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(79, 70, 229, ${p.opacity})`;
+      ctx.fill();
+    }
+    // Draw connection lines once
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        if (dx * dx + dy * dy < CONNECTION_DISTANCE * CONNECTION_DISTANCE) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(79, 70, 229, ${LINE_OPACITY})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Wrap around edges
+      if (p.x < -p.r) p.x = canvas.width + p.r;
+      else if (p.x > canvas.width + p.r) p.x = -p.r;
+      if (p.y < -p.r) p.y = canvas.height + p.r;
+      else if (p.y > canvas.height + p.r) p.y = -p.r;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(79, 70, 229, ${p.opacity})`;
+      ctx.fill();
+    }
+
+    // Connection lines
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        if (dx * dx + dy * dy < CONNECTION_DISTANCE * CONNECTION_DISTANCE) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(79, 70, 229, ${LINE_OPACITY})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    animId = requestAnimationFrame(animate);
+  }
+
+  resize();
+  createParticles();
+
+  window.addEventListener('resize', () => {
+    resize();
+    createParticles();
+    if (prefersReducedMotion) drawStatic();
+  });
+
+  if (prefersReducedMotion) {
+    drawStatic();
+  } else {
+    animate();
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §2  Scroll Reveal Animations (IntersectionObserver)
+ * ──────────────────────────────────────────────────────────── */
+
+/** @type {IntersectionObserver|null} */
+let revealObserver = null;
+
+function initScrollReveal() {
+  if (!('IntersectionObserver' in window)) {
+    // Fallback: make everything visible immediately
+    document.querySelectorAll('.anim-card-reveal').forEach(el => el.classList.add('visible'));
+    return;
+  }
+
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  document.querySelectorAll('.anim-card-reveal').forEach(el => revealObserver.observe(el));
+}
+
+/** Re-observe elements (e.g. after tab switch) */
+function reobserveRevealElements(container) {
+  if (!revealObserver) return;
+  const scope = container || document;
+  scope.querySelectorAll('.anim-card-reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      revealObserver.observe(el);
+    }
+  });
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §3  Stat Counter Animation
+ * ──────────────────────────────────────────────────────────── */
+
+function initStatCounters() {
+  const counters = document.querySelectorAll('.stat-number[data-count]');
+  if (!counters.length) return;
+
+  if (!('IntersectionObserver' in window)) {
+    counters.forEach(el => {
+      const target = parseInt(el.getAttribute('data-count'), 10) || 0;
+      const suffix = el.getAttribute('data-suffix') || '';
+      el.textContent = target + suffix;
+    });
+    return;
+  }
+
+  function easeOutQuart(t) {
+    return 1 - Math.pow(1 - t, 4);
+  }
+
+  const counterObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        counterObserver.unobserve(el); // run once
+        const target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        const suffix = el.getAttribute('data-suffix') || '';
+        const duration = 1500; // ms
+        const start = performance.now();
+
+        function step(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const value = Math.round(easeOutQuart(progress) * target);
+          el.textContent = value + suffix;
+          if (progress < 1) requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+      });
+    },
+    { threshold: 0.5 }
+  );
+
+  counters.forEach(el => counterObserver.observe(el));
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §4  Navigation Tabs
+ * ──────────────────────────────────────────────────────────── */
+
+function initTabs() {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active from all tabs
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      // Set clicked tab active
+      tab.classList.add('active');
+
+      const target = tab.getAttribute('data-tab');
+      // Hide all panes, show target
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+      });
+      const targetPane = document.getElementById(target);
+      if (targetPane) {
+        targetPane.classList.add('active');
+        // Re-observe reveal animations in newly visible pane
+        reobserveRevealElements(targetPane);
+      }
+    });
+  });
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §5  Feature Chip Clicks
+ * ──────────────────────────────────────────────────────────── */
+
+function initFeatureChips() {
+  document.querySelectorAll('.chip[data-prompt]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const prompt = chip.getAttribute('data-prompt');
+      if (prompt) executeVoiceQuery(prompt);
+    });
+  });
+}
+
+/** Central dispatcher for text-based queries (from chips, commands, etc.) */
+function executeVoiceQuery(query) {
+  if (!query || !query.trim()) return;
+  executeWebAnalysis(query.trim());
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §6  Web Audio Waveform Visualizer
+ * ──────────────────────────────────────────────────────────── */
+
+function initAudioContext() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (state.audioContext && state.audioContext.state !== 'closed') {
+        resolve();
+        return;
+      }
+
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      state.audioContext = new AudioCtx();
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      state.micStream = stream;
+
+      state.analyser = state.audioContext.createAnalyser();
+      state.analyser.fftSize = 256;
+
+      const source = state.audioContext.createMediaStreamSource(stream);
+      source.connect(state.analyser);
+
+      drawVisualizer();
+      resolve();
+    } catch (err) {
+      console.error('[Audio] Failed to init audio context:', err);
+      reject(err);
+    }
+  });
 }
 
 function drawVisualizer() {
-  if (!waveformCanvas || !state.analyser) return;
-  const ctx = waveformCanvas.getContext('2d');
+  const canvas = document.getElementById('waveformCanvas');
+  if (!canvas || !state.analyser) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const overlay = document.getElementById('visualizerOverlay');
+
   const bufferLength = state.analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
 
-  function render() {
-    requestAnimationFrame(render);
+  function draw() {
+    requestAnimationFrame(draw);
+
     state.analyser.getByteFrequencyData(dataArray);
 
-    ctx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+    // Responsive canvas sizing
+    const rect = canvas.parentElement
+      ? canvas.parentElement.getBoundingClientRect()
+      : canvas.getBoundingClientRect();
+    if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+      canvas.width = Math.floor(rect.width);
+      canvas.height = Math.floor(rect.height);
+    }
 
-    const barWidth = (waveformCanvas.width / bufferLength) * 2.2;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) * 1.5;
     let x = 0;
-    let sum = 0;
 
     for (let i = 0; i < bufferLength; i++) {
-      const barHeight = (dataArray[i] / 255) * (waveformCanvas.height * 0.85);
-      sum += dataArray[i];
+      const v = dataArray[i];
+      const barHeight = (v / 255) * canvas.height * 0.85;
 
-      // Dynamic color gradient based on listening status
       if (state.isListening) {
-        ctx.fillStyle = `rgb(${239}, ${68 + dataArray[i] / 4}, ${68})`;
+        // Red spectrum when listening
+        const r = 200 + Math.floor((v / 255) * 55);
+        const g = 30 + Math.floor((v / 255) * 30);
+        const b = 30;
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
       } else {
-        ctx.fillStyle = `rgb(${79 + dataArray[i] / 6}, ${70 + dataArray[i] / 4}, ${229})`;
+        // Indigo spectrum
+        const r = 60 + Math.floor((v / 255) * 19);
+        const g = 50 + Math.floor((v / 255) * 20);
+        const b = 180 + Math.floor((v / 255) * 49);
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
       }
 
-      ctx.fillRect(x, waveformCanvas.height - barHeight, barWidth, barHeight);
-      x += barWidth + 1;
+      ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+      x += barWidth;
     }
 
-    // Live acoustic meter calculations for Voice Training
-    const avg = sum / bufferLength;
-    if (meterEnergy && state.audioContext) {
-      const db = Math.round(20 * Math.log10(Math.max(avg, 1)));
-      meterEnergy.textContent = `${db} dB`;
-      if (meterPitch) meterPitch.textContent = `${Math.round(110 + avg * 1.2)} Hz`;
-      if (meterTimbre) meterTimbre.textContent = avg > 40 ? 'Rich' : 'Muted';
+    // Update acoustic meters from audio data
+    updateAcousticMeters(dataArray, bufferLength);
+
+    // Hide overlay once actively receiving audio
+    if (overlay && overlay.style.display !== 'none') {
+      const hasSignal = dataArray.some(v => v > 10);
+      if (hasSignal) {
+        overlay.style.display = 'none';
+      }
     }
   }
 
-  render();
+  draw();
 }
 
-// ==========================================
-// 3. Speech Recognition & Mic Handling
-// ==========================================
+function updateAcousticMeters(dataArray, bufferLength) {
+  // Pitch — weighted towards lower frequencies
+  const meterPitch = document.getElementById('meterPitch');
+  // Timbre — mid-range frequencies
+  const meterTimbre = document.getElementById('meterTimbre');
+  // Energy — overall RMS-like value
+  const meterEnergy = document.getElementById('meterEnergy');
+
+  if (!meterPitch && !meterTimbre && !meterEnergy) return;
+
+  let lowSum = 0;
+  let midSum = 0;
+  let totalSum = 0;
+  const quarter = Math.floor(bufferLength / 4);
+
+  for (let i = 0; i < bufferLength; i++) {
+    const v = dataArray[i];
+    totalSum += v;
+    if (i < quarter) lowSum += v;
+    else if (i < quarter * 3) midSum += v;
+  }
+
+  const pitchPct = Math.min(100, Math.round((lowSum / (quarter * 255)) * 100));
+  const timbrePct = Math.min(100, Math.round((midSum / (quarter * 2 * 255)) * 100));
+  const energyPct = Math.min(100, Math.round((totalSum / (bufferLength * 255)) * 100));
+
+  if (meterPitch) meterPitch.style.width = pitchPct + '%';
+  if (meterTimbre) meterTimbre.style.width = timbrePct + '%';
+  if (meterEnergy) meterEnergy.style.width = energyPct + '%';
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §7  Speech Recognition (Web Speech API)
+ * ──────────────────────────────────────────────────────────── */
+
 function setupSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SpeechRecognition) {
-    state.recognition = new SpeechRecognition();
-    state.recognition.continuous = true;
-    state.recognition.interimResults = true;
-    state.recognition.lang = 'en-US';
-
-    state.recognition.onresult = (event) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        } else {
-          interimTranscript += event.results[i][0].transcript;
-        }
-      }
-
-      const text = (finalTranscript || interimTranscript).trim();
-      if (text) {
-        liveTranscript.textContent = `"${text}"`;
-        confidenceBadge.textContent = 'Listening...';
-        confidenceBadge.className = 'badge badge-muted';
-
-        if (finalTranscript) {
-          confidenceBadge.textContent = 'Confidence: 97%';
-          confidenceBadge.className = 'badge badge-success';
-          handleVoiceCommand(finalTranscript);
-        }
-      }
-    };
-
-    state.recognition.onerror = (event) => {
-      console.warn('Speech recognition error:', event.error);
-      micStatusText.textContent = `Recognition note: ${event.error}`;
-    };
-
-    state.recognition.onend = () => {
-      if (state.isListening) {
-        try { state.recognition.start(); } catch (e) {}
-      }
-    };
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('[Speech] Web Speech API not supported');
+    return;
   }
+
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  const liveTranscript = document.getElementById('liveTranscript');
+  const confidenceBadge = document.getElementById('confidenceBadge');
+  const engineBadge = document.getElementById('engineBadge');
+
+  recognition.onresult = (event) => {
+    let interimText = '';
+    let finalText = '';
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+      const transcript = result[0].transcript;
+
+      if (result.isFinal) {
+        finalText += transcript;
+        // Update confidence
+        const confidence = Math.round((result[0].confidence || 0) * 100);
+        if (confidenceBadge) confidenceBadge.textContent = confidence + '%';
+      } else {
+        interimText += transcript;
+      }
+    }
+
+    // Show live transcript (prefer interim, show final when done)
+    if (liveTranscript) {
+      liveTranscript.textContent = interimText || finalText || '…';
+    }
+
+    if (finalText) {
+      handleVoiceCommand(finalText.trim());
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error('[Speech] Recognition error:', event.error);
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      state.isListening = false;
+      updateMicUI();
+    }
+  };
+
+  recognition.onend = () => {
+    // Auto-restart if still supposed to be listening
+    if (state.isListening) {
+      try {
+        recognition.start();
+      } catch (_) {
+        /* already started */
+      }
+    }
+  };
+
+  state.recognition = recognition;
+
+  if (engineBadge) engineBadge.textContent = state.currentEngine;
+
+  // Mic button
+  const micBtn = document.getElementById('micBtn');
+  if (micBtn) micBtn.addEventListener('click', toggleListening);
 }
 
-async function toggleListening() {
-  await initAudioContext();
-  if (!state.isListening) {
-    startListening();
-  } else {
+function toggleListening() {
+  if (state.isListening) {
     stopListening();
+  } else {
+    startListening();
   }
 }
 
-function startListening() {
-  state.isListening = true;
-  micBtn.classList.add('listening');
-  micStatusText.textContent = 'Listening for "Ether" or command...';
-  if (state.recognition) {
-    try { state.recognition.start(); } catch (e) {}
+async function startListening() {
+  try {
+    await initAudioContext();
+  } catch (_) {
+    /* audio init may fail — speech recognition can still work */
   }
-  // Start server-side media recording
-  startMediaRecording();
+
+  if (state.recognition) {
+    try {
+      state.recognition.start();
+    } catch (_) {
+      /* may already be started */
+    }
+  }
+
+  // Also prepare MediaRecorder for server-side streaming
+  if (state.micStream && !state.mediaRecorder) {
+    try {
+      state.mediaRecorder = new MediaRecorder(state.micStream);
+      state.mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) state.audioChunks.push(e.data);
+      };
+    } catch (err) {
+      console.warn('[Audio] MediaRecorder init failed:', err);
+    }
+  }
+
+  state.isListening = true;
+  updateMicUI();
 }
 
 function stopListening() {
-  state.isListening = false;
-  micBtn.classList.remove('listening');
-  micStatusText.textContent = 'Ready for speech';
   if (state.recognition) {
-    try { state.recognition.stop(); } catch (e) {}
+    try {
+      state.recognition.stop();
+    } catch (_) {
+      /* already stopped */
+    }
   }
-  stopMediaRecording();
+  state.isListening = false;
+  updateMicUI();
 }
 
-micBtn.addEventListener('click', toggleListening);
+function updateMicUI() {
+  const micBtn = document.getElementById('micBtn');
+  const micStatusText = document.getElementById('micStatusText');
+  const visualizerStateText = document.getElementById('visualizerStateText');
+  const headerEngineLabel = document.getElementById('headerEngineLabel');
 
-// MediaRecorder for high-accuracy audio streaming to backend
-function startMediaRecording() {
-  if (!state.micStream) return;
-  state.audioChunks = [];
-  try {
-    state.mediaRecorder = new MediaRecorder(state.micStream);
-    state.mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) state.audioChunks.push(e.data);
-    };
-    state.mediaRecorder.start(250);
-  } catch (e) {
-    console.warn('MediaRecorder error:', e);
+  if (micBtn) {
+    micBtn.classList.toggle('listening', state.isListening);
+    micBtn.setAttribute('aria-pressed', String(state.isListening));
+  }
+  if (micStatusText) {
+    micStatusText.textContent = state.isListening ? 'Listening…' : 'Click to start';
+  }
+  if (visualizerStateText) {
+    visualizerStateText.textContent = state.isListening ? 'LIVE' : 'STANDBY';
+  }
+  if (headerEngineLabel) {
+    headerEngineLabel.textContent = state.currentEngine;
   }
 }
 
-function stopMediaRecording() {
-  if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-    state.mediaRecorder.stop();
-  }
-}
+/* ────────────────────────────────────────────────────────────
+ *  §8  Command Router
+ * ──────────────────────────────────────────────────────────── */
 
-// ==========================================
-// 4. Command Router & Voice Logic
-// ==========================================
-function handleVoiceCommand(rawText) {
-  const text = rawText.toLowerCase().trim();
-  console.log('Processing voice command:', text);
+function handleVoiceCommand(raw) {
+  if (!raw) return;
+  // Strip wake word "ether" (case insensitive, at start)
+  let cmd = raw.replace(/^ether[\s,.:!?]*/i, '').trim();
+  if (!cmd) return;
 
-  // Strip wake word "ether" if present
-  let cmd = text.replace(/\bether\b/gi, '').trim();
-  if (cmd.startsWith(',') || cmd.startsWith('.')) cmd = cmd.substring(1).trim();
+  const lower = cmd.toLowerCase();
 
-  if (!cmd) {
-    speakText("Yes? I am listening.");
+  // Web analysis triggers
+  if (
+    lower.startsWith('analyze') ||
+    lower.startsWith('analyse') ||
+    lower.startsWith('search') ||
+    lower.startsWith('find') ||
+    lower.startsWith('what is') ||
+    lower.startsWith('who is')
+  ) {
+    executeWebAnalysis(cmd);
     return;
   }
 
-  // 1. Music commands
-  if (cmd.startsWith('play ') || cmd.includes('play song') || cmd.includes('on spotify')) {
-    const songQuery = cmd.replace(/^play\s+/, '').replace(/\s+on spotify.*$/, '').replace(/song\s+/, '');
-    playOnSpotify(songQuery);
-    return;
-  }
-  if (cmd === 'pause' || cmd === 'pause music' || cmd === 'stop music') {
-    pauseSpotify();
-    return;
-  }
-  if (cmd === 'next song' || cmd === 'skip song' || cmd === 'next') {
-    nextSpotify();
-    return;
-  }
-
-  // 2. Web Analysis commands
-  if (cmd.startsWith('analyze ') || cmd.startsWith('search ') || cmd.startsWith('find ') || cmd.startsWith('what is ') || cmd.startsWith('who is ')) {
-    const query = cmd.replace(/^(analyze the web for|analyze|search the web for|search for|search|find|what is|who is)\s+/i, '');
-    executeWebAnalysis(query || cmd);
-    return;
-  }
-
-  // 3. Fallback to intelligent web search
+  // Everything else → web analysis as fallback (no Spotify)
   executeWebAnalysis(cmd);
 }
 
-function executeVoiceQuery(query) {
-  liveTranscript.textContent = `"${query}"`;
-  handleVoiceCommand(query);
-}
+/* ────────────────────────────────────────────────────────────
+ *  §9  Web Analysis Engine
+ * ──────────────────────────────────────────────────────────── */
 
-// ==========================================
-// 5. Web Analysis Engine
-// ==========================================
 async function executeWebAnalysis(query) {
-  responseSummary.textContent = `Searching and analyzing web information for "${query}"...`;
-  responseDetails.innerHTML = '';
+  if (!query) return;
+
+  const responseSummary = document.getElementById('responseSummary');
+  const responseDetails = document.getElementById('responseDetails');
+
+  if (responseSummary) responseSummary.textContent = 'Analyzing…';
+  if (responseDetails) responseDetails.innerHTML = '';
 
   try {
     const res = await fetch('/api/analyze-web', {
@@ -335,374 +609,533 @@ async function executeWebAnalysis(query) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query })
     });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
     const data = await res.json();
 
-    if (data.spoken_summary) {
-      responseSummary.textContent = `"${data.spoken_summary}"`;
-      speakText(data.spoken_summary);
-
-      // Render bullet takeaways
-      if (data.key_takeaways && data.key_takeaways.length > 0) {
-        responseDetails.innerHTML = data.key_takeaways.map(t => `
-          <div class="bullet-item">
-            <span class="bullet-dot"></span>
-            <span>${t}</span>
-          </div>
-        `).join('');
-      }
-
-      // Also update the Web Analyzer Tab results
-      renderWebResults(data);
+    // Update console tab
+    if (responseSummary) {
+      responseSummary.textContent = data.summary || 'No summary available.';
     }
+    if (responseDetails && Array.isArray(data.details)) {
+      responseDetails.innerHTML = data.details
+        .map(d => `<li>${escapeHTML(d)}</li>`)
+        .join('');
+    } else if (responseDetails && data.details) {
+      responseDetails.innerHTML = `<li>${escapeHTML(String(data.details))}</li>`;
+    }
+
+    // Speak the summary
+    speakText(data.summary || '');
+
+    // Render in web results tab
+    renderWebResults(data);
   } catch (err) {
-    responseSummary.textContent = `Could not analyze web for "${query}": ${err.message}`;
+    console.error('[Web] Analysis failed:', err);
+    if (responseSummary) responseSummary.textContent = 'Analysis failed. Please try again.';
   }
 }
 
 function renderWebResults(data) {
-  if (!webResultsContainer) return;
-  const sourcesHtml = (data.sources || []).map(s => `
-    <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-pill">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-      ${s.title}
-    </a>
-  `).join('');
+  const container = document.getElementById('webResultsContainer');
+  const emptyState = document.getElementById('webEmptyState');
+  if (!container) return;
 
-  const takeawaysHtml = (data.key_takeaways || []).map(t => `
-    <div class="takeaway-item">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-      <span>${t}</span>
-    </div>
-  `).join('');
+  // Hide empty state
+  if (emptyState) emptyState.style.display = 'none';
 
-  webResultsContainer.innerHTML = `
-    <div class="card synthesis-card">
-      <div class="card-header">
-        <h3 class="card-title">Analysis for "${data.query}"</h3>
-        <span class="badge badge-success">Synthesized: ${data.synthesis_method || 'AI'}</span>
-      </div>
-      <p class="summary-lead">${data.spoken_summary}</p>
-      <div class="takeaways-list">${takeawaysHtml}</div>
-      <div class="sources-header">Verified Sources & Citations</div>
-      <div class="sources-row">${sourcesHtml || '<span class="helper-text">Direct knowledge base</span>'}</div>
-    </div>
-  `;
-}
+  // Build synthesis card
+  const card = document.createElement('div');
+  card.className = 'glass-card web-result-card';
 
-if (webSearchBtn) {
-  webSearchBtn.addEventListener('click', () => {
-    const q = webQueryInput.value.trim();
-    if (q) executeWebAnalysis(q);
-  });
-}
+  // Summary
+  const summaryEl = document.createElement('p');
+  summaryEl.className = 'result-summary';
+  summaryEl.textContent = data.summary || 'No summary.';
+  card.appendChild(summaryEl);
 
-// ==========================================
-// 6. Voice Training Studio
-// ==========================================
-if (recordSampleBtn) {
-  recordSampleBtn.addEventListener('click', async () => {
-    await initAudioContext();
-    if (state.isRecordingSample) return;
-
-    state.isRecordingSample = true;
-    recordSampleBtn.classList.add('btn-primary');
-    recordSampleBtnText.textContent = `Recording Sample ${state.enrollmentStep}... (Speak now)`;
-
-    const chunks = [];
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const rec = new MediaRecorder(stream);
-    rec.ondataavailable = (e) => chunks.push(e.data);
-    rec.start();
-
-    setTimeout(() => {
-      rec.stop();
-      rec.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/wav' });
-        state.enrollmentSamples.push(blob);
-        state.isRecordingSample = false;
-
-        if (state.enrollmentStep < 3) {
-          state.enrollmentStep++;
-          enrollmentStepText.textContent = `Step ${state.enrollmentStep} of 3`;
-          recordSampleBtnText.textContent = `Record Sample ${state.enrollmentStep}`;
-          document.querySelectorAll('.prompt-step').forEach((el, idx) => {
-            el.classList.toggle('active', idx === state.enrollmentStep - 1);
-          });
-        } else {
-          // Completed 3 samples -> Submit to backend
-          submitVoiceEnrollment();
-        }
-      };
-    }, 3200); // 3.2 seconds sample capture
-  });
-}
-
-async function submitVoiceEnrollment() {
-  recordSampleBtnText.textContent = 'Processing & Calibrating Profile...';
-  const speakerName = speakerNameInput.value.trim() || 'My Voice';
-
-  const formData = new FormData();
-  formData.append('speaker_name', speakerName);
-  state.enrollmentSamples.forEach((blob, i) => {
-    formData.append('samples', blob, `sample_${i + 1}.wav`);
-  });
-
-  try {
-    const res = await fetch('/api/train-voice', {
-      method: 'POST',
-      body: formData
+  // Takeaways
+  if (Array.isArray(data.takeaways) && data.takeaways.length) {
+    const list = document.createElement('ul');
+    list.className = 'result-takeaways';
+    data.takeaways.forEach(t => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="checkmark">✓</span> ${escapeHTML(t)}`;
+      list.appendChild(li);
     });
-    const data = await res.json();
-    if (data.success) {
-      alert(`Voice profile "${speakerName}" trained and saved successfully!`);
-      loadVoiceProfiles();
-      resetEnrollment();
-    } else {
-      alert(`Training error: ${data.error}`);
-      resetEnrollment();
+    card.appendChild(list);
+  } else if (Array.isArray(data.details) && data.details.length) {
+    // Fallback to details as takeaways
+    const list = document.createElement('ul');
+    list.className = 'result-takeaways';
+    data.details.forEach(d => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="checkmark">✓</span> ${escapeHTML(d)}`;
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+  }
+
+  // Source pills
+  if (Array.isArray(data.sources) && data.sources.length) {
+    const pillsWrap = document.createElement('div');
+    pillsWrap.className = 'source-pills';
+    data.sources.forEach(src => {
+      const pill = document.createElement('a');
+      pill.className = 'source-pill';
+      pill.href = src.url || '#';
+      pill.target = '_blank';
+      pill.rel = 'noopener noreferrer';
+      pill.textContent = src.title || src.url || 'Source';
+      pillsWrap.appendChild(pill);
+    });
+    card.appendChild(pillsWrap);
+  }
+
+  // Timestamp
+  const ts = document.createElement('time');
+  ts.className = 'result-timestamp';
+  ts.textContent = new Date().toLocaleTimeString();
+  card.appendChild(ts);
+
+  // Prepend (newest first)
+  container.prepend(card);
+}
+
+function initWebSearch() {
+  const webSearchBtn = document.getElementById('webSearchBtn');
+  const webQueryInput = document.getElementById('webQueryInput');
+
+  function triggerSearch() {
+    if (!webQueryInput) return;
+    const query = webQueryInput.value.trim();
+    if (query) {
+      executeWebAnalysis(query);
+      webQueryInput.value = '';
     }
-  } catch (err) {
-    alert(`Failed to save profile: ${err.message}`);
-    resetEnrollment();
+  }
+
+  if (webSearchBtn) webSearchBtn.addEventListener('click', triggerSearch);
+  if (webQueryInput) {
+    webQueryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerSearch();
+      }
+    });
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §10  Voice Training Studio
+ * ──────────────────────────────────────────────────────────── */
+
+function initVoiceTraining() {
+  const recordSampleBtn = document.getElementById('recordSampleBtn');
+  const recordSampleBtnText = document.getElementById('recordSampleBtnText');
+  const resetEnrollmentBtn = document.getElementById('resetEnrollmentBtn');
+  const enrollmentStepText = document.getElementById('enrollmentStepText');
+  const verifyVoiceBtn = document.getElementById('verifyVoiceBtn');
+  const verifyResult = document.getElementById('verifyResult');
+  const refreshProfilesBtn = document.getElementById('refreshProfilesBtn');
+
+  // Record sample button
+  if (recordSampleBtn) {
+    recordSampleBtn.addEventListener('click', async () => {
+      if (state.isRecordingSample) return;
+      state.isRecordingSample = true;
+
+      if (recordSampleBtnText) recordSampleBtnText.textContent = 'Recording…';
+      recordSampleBtn.disabled = true;
+
+      try {
+        await initAudioContext();
+
+        const recorder = new MediaRecorder(state.micStream);
+        const chunks = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          state.enrollmentSamples.push(blob);
+
+          if (state.enrollmentStep < 3) {
+            state.enrollmentStep++;
+            updateEnrollmentUI();
+          } else {
+            // All 3 samples collected
+            updateEnrollmentUI();
+            submitVoiceEnrollment();
+          }
+
+          state.isRecordingSample = false;
+          recordSampleBtn.disabled = false;
+          if (recordSampleBtnText) recordSampleBtnText.textContent = 'Record Sample';
+        };
+
+        recorder.start();
+        // Record for 3.2 seconds
+        setTimeout(() => {
+          if (recorder.state === 'recording') recorder.stop();
+        }, 3200);
+      } catch (err) {
+        console.error('[Training] Record sample failed:', err);
+        state.isRecordingSample = false;
+        recordSampleBtn.disabled = false;
+        if (recordSampleBtnText) recordSampleBtnText.textContent = 'Record Sample';
+      }
+    });
+  }
+
+  // Reset enrollment
+  if (resetEnrollmentBtn) {
+    resetEnrollmentBtn.addEventListener('click', resetEnrollment);
+  }
+
+  // Verify voice button
+  if (verifyVoiceBtn) {
+    verifyVoiceBtn.addEventListener('click', async () => {
+      if (verifyResult) verifyResult.textContent = 'Recording verification sample…';
+      verifyVoiceBtn.disabled = true;
+
+      try {
+        await initAudioContext();
+
+        const recorder = new MediaRecorder(state.micStream);
+        const chunks = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          if (verifyResult) verifyResult.textContent = 'Verifying…';
+
+          try {
+            const formData = new FormData();
+            formData.append('audio', blob, 'verify.webm');
+            const res = await fetch('/api/verify-voice', {
+              method: 'POST',
+              body: formData
+            });
+            const data = await res.json();
+
+            if (verifyResult) {
+              verifyResult.textContent = data.match
+                ? `✓ Match: ${data.speaker || 'Identified'} (${Math.round((data.confidence || 0) * 100)}%)`
+                : `✗ No match found (${Math.round((data.confidence || 0) * 100)}% confidence)`;
+              verifyResult.className = data.match ? 'verify-match' : 'verify-nomatch';
+            }
+          } catch (err) {
+            console.error('[Training] Verification failed:', err);
+            if (verifyResult) verifyResult.textContent = 'Verification failed.';
+          }
+          verifyVoiceBtn.disabled = false;
+        };
+
+        recorder.start();
+        // Record for 2.8 seconds
+        setTimeout(() => {
+          if (recorder.state === 'recording') recorder.stop();
+        }, 2800);
+      } catch (err) {
+        console.error('[Training] Verify init failed:', err);
+        verifyVoiceBtn.disabled = false;
+        if (verifyResult) verifyResult.textContent = 'Microphone access failed.';
+      }
+    });
+  }
+
+  // Refresh profiles
+  if (refreshProfilesBtn) {
+    refreshProfilesBtn.addEventListener('click', loadVoiceProfiles);
+  }
+
+  function updateEnrollmentUI() {
+    if (enrollmentStepText) {
+      enrollmentStepText.textContent = `Step ${state.enrollmentStep} of 3`;
+    }
   }
 }
 
 function resetEnrollment() {
   state.enrollmentStep = 1;
   state.enrollmentSamples = [];
+  const enrollmentStepText = document.getElementById('enrollmentStepText');
   if (enrollmentStepText) enrollmentStepText.textContent = 'Step 1 of 3';
-  if (recordSampleBtnText) recordSampleBtnText.textContent = 'Record Sample 1';
-  document.querySelectorAll('.prompt-step').forEach((el, idx) => {
-    el.classList.toggle('active', idx === 0);
-  });
 }
 
-if (resetEnrollmentBtn) resetEnrollmentBtn.addEventListener('click', resetEnrollment);
+async function submitVoiceEnrollment() {
+  const speakerNameInput = document.getElementById('speakerNameInput');
+  const enrollmentStepText = document.getElementById('enrollmentStepText');
+  const name = speakerNameInput ? speakerNameInput.value.trim() : '';
+
+  if (!name) {
+    if (enrollmentStepText) enrollmentStepText.textContent = 'Please enter a speaker name.';
+    resetEnrollment();
+    return;
+  }
+
+  if (enrollmentStepText) enrollmentStepText.textContent = 'Submitting…';
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    state.enrollmentSamples.forEach((blob, i) => {
+      formData.append(`sample_${i}`, blob, `sample_${i}.webm`);
+    });
+
+    const res = await fetch('/api/train-voice', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    const data = await res.json();
+    if (enrollmentStepText) {
+      enrollmentStepText.textContent = data.message || 'Enrollment complete!';
+    }
+
+    // Refresh profiles
+    loadVoiceProfiles();
+  } catch (err) {
+    console.error('[Training] Enrollment submission failed:', err);
+    if (enrollmentStepText) enrollmentStepText.textContent = 'Enrollment failed.';
+  }
+
+  // Reset for next enrollment
+  state.enrollmentSamples = [];
+  state.enrollmentStep = 1;
+}
 
 async function loadVoiceProfiles() {
+  const profilesContainer = document.getElementById('profilesContainer');
   if (!profilesContainer) return;
+
   try {
     const res = await fetch('/api/voice-profiles');
-    const data = await res.json();
-    if (data.profiles && data.profiles.length > 0) {
-      profilesContainer.innerHTML = data.profiles.map(p => `
-        <div class="profile-item ${p.is_active ? 'active' : ''}">
-          <div class="profile-info">
-            <span class="profile-name">${p.name}</span>
-            <span class="profile-meta">${p.samples} samples &bull; Pitch: ${p.pitch_hz || 120} Hz &bull; Status: ${p.status}</span>
-          </div>
-          <span class="badge ${p.is_active ? 'badge-success' : 'badge-muted'}">${p.is_active ? 'Active' : 'Enrolled'}</span>
-        </div>
-      `).join('');
-    } else {
-      profilesContainer.innerHTML = `
-        <div class="profile-item">
-          <div class="profile-info">
-            <span class="profile-name">No Enrolled Profiles</span>
-            <span class="profile-meta">Record 3 samples above to create your speaker model.</span>
-          </div>
-        </div>
-      `;
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    const profiles = await res.json();
+
+    if (!Array.isArray(profiles) || profiles.length === 0) {
+      profilesContainer.innerHTML =
+        '<p class="empty-text">No voice profiles enrolled yet.</p>';
+      return;
     }
-  } catch (e) {
-    console.warn('Error loading profiles:', e);
-  }
-}
 
-if (refreshProfilesBtn) refreshProfilesBtn.addEventListener('click', loadVoiceProfiles);
-
-// Test Speaker Verification
-if (verifyVoiceBtn) {
-  verifyVoiceBtn.addEventListener('click', async () => {
-    verifyResult.innerHTML = '<span class="verify-badge">Listening for test sample...</span>';
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const chunks = [];
-    const rec = new MediaRecorder(stream);
-    rec.ondataavailable = e => chunks.push(e.data);
-    rec.start();
-
-    setTimeout(() => {
-      rec.stop();
-      rec.onstop = async () => {
-        const blob = new Blob(chunks, { type: 'audio/wav' });
-        const formData = new FormData();
-        formData.append('audio', blob, 'verify.wav');
-
-        verifyResult.innerHTML = '<span class="verify-badge">Analyzing acoustic match...</span>';
-        try {
-          const res = await fetch('/api/verify-voice', {
-            method: 'POST',
-            body: formData
-          });
-          const data = await res.json();
-          const matchPercent = Math.round((data.confidence || 0.85) * 100);
-          if (data.verified) {
-            verifyResult.innerHTML = `<span class="verify-badge match">Verified: ${matchPercent}% match (${data.profile_name})</span>`;
-          } else {
-            verifyResult.innerHTML = `<span class="verify-badge" style="color:#DC2626;">Mismatch: ${matchPercent}% match</span>`;
-          }
-        } catch (err) {
-          verifyResult.innerHTML = `<span class="verify-badge">Error: ${err.message}</span>`;
-        }
-      };
-    }, 2800);
-  });
-}
-
-// ==========================================
-// 7. Spotify Media Hub
-// ==========================================
-async function playOnSpotify(query) {
-  try {
-    const res = await fetch('/api/spotify/play', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
-    });
-    const data = await res.json();
-    if (data.success) {
-      spTrackName.textContent = data.track_name || query;
-      spTrackArtist.textContent = data.artist || 'Playing on Spotify';
-      if (data.album_art) spAlbumArt.src = data.album_art;
-      speakText(`Playing ${data.track_name} by ${data.artist}`);
-    } else {
-      speakText(data.message || 'Could not play song.');
-      alert(data.message);
-    }
+    profilesContainer.innerHTML = profiles
+      .map(
+        (p) => `
+        <div class="profile-item glass-card" data-profile-id="${escapeAttr(p.id || '')}">
+          <span class="profile-name">${escapeHTML(p.name || 'Unknown')}</span>
+          <span class="profile-meta">${escapeHTML(p.samples ? p.samples + ' samples' : '')}</span>
+        </div>`
+      )
+      .join('');
   } catch (err) {
-    console.error('Spotify play error:', err);
+    console.error('[Training] Failed to load profiles:', err);
+    profilesContainer.innerHTML =
+      '<p class="empty-text">Failed to load profiles.</p>';
   }
 }
 
-async function pauseSpotify() {
-  await fetch('/api/spotify/pause', { method: 'POST' });
-}
+/* ────────────────────────────────────────────────────────────
+ *  §11  Text-to-Speech (TTS)
+ * ──────────────────────────────────────────────────────────── */
 
-async function nextSpotify() {
-  await fetch('/api/spotify/next', { method: 'POST' });
-}
-
-if (spPlayPauseBtn) spPlayPauseBtn.addEventListener('click', pauseSpotify);
-if (spNextBtn) spNextBtn.addEventListener('click', nextSpotify);
-if (spPrevBtn) spPrevBtn.addEventListener('click', () => fetch('/api/spotify/previous', { method: 'POST' }));
-
-if (spotifySearchBtn) {
-  spotifySearchBtn.addEventListener('click', () => {
-    const q = spotifySearchInput.value.trim();
-    if (q) playOnSpotify(q);
-  });
-}
-
-async function updateSpotifyStatus() {
-  try {
-    const res = await fetch('/api/spotify/status');
-    const data = await res.json();
-    if (data.configured && data.track) {
-      spTrackName.textContent = data.track.name;
-      spTrackArtist.textContent = data.track.artist;
-      if (data.track.album_art) spAlbumArt.src = data.track.album_art;
-      if (data.track.duration_ms > 0) {
-        const pct = (data.track.progress_ms / data.track.duration_ms) * 100;
-        spProgressFill.style.width = `${pct}%`;
-      }
-    }
-  } catch (e) {}
-}
-
-setInterval(updateSpotifyStatus, 6000);
-
-// ==========================================
-// 8. TTS Voice Synthesizer
-// ==========================================
 function speakText(text) {
   if (!text) return;
+
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    window.speechSynthesis.speak(utterance);
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.0;
+    u.pitch = 1.0;
+    window.speechSynthesis.speak(u);
   } else {
-    // Backend fallback
+    // Fallback to backend TTS
     fetch('/api/speak', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
+    }).catch(err => console.error('[TTS] Backend speak failed:', err));
+  }
+}
+
+function initTTS() {
+  const speakResponseBtn = document.getElementById('speakResponseBtn');
+  const responseSummary = document.getElementById('responseSummary');
+
+  if (speakResponseBtn) {
+    speakResponseBtn.addEventListener('click', () => {
+      if (responseSummary) speakText(responseSummary.textContent);
     });
   }
 }
 
-if (speakResponseBtn) {
-  speakResponseBtn.addEventListener('click', () => {
-    speakText(responseSummary.textContent);
-  });
-}
+/* ────────────────────────────────────────────────────────────
+ *  §12  Settings
+ * ──────────────────────────────────────────────────────────── */
 
-// ==========================================
-// 9. Settings & Noise Floor Calibration
-// ==========================================
-if (energyThresholdSlider && energyVal) {
-  energyThresholdSlider.addEventListener('input', (e) => {
-    energyVal.textContent = e.target.value;
-  });
-}
+function initSettings() {
+  const engineSelect = document.getElementById('engineSelect');
+  const whisperModelSelect = document.getElementById('whisperModelSelect');
+  const energyThresholdSlider = document.getElementById('energyThresholdSlider');
+  const energyVal = document.getElementById('energyVal');
+  const wakeSensitivitySlider = document.getElementById('wakeSensitivitySlider');
+  const wakeVal = document.getElementById('wakeVal');
+  const noiseCalibrationBtn = document.getElementById('noiseCalibrationBtn');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
-if (wakeSensitivitySlider && wakeVal) {
-  wakeSensitivitySlider.addEventListener('input', (e) => {
-    wakeVal.textContent = `${e.target.value}%`;
-  });
-}
-
-if (noiseCalibrationBtn) {
-  noiseCalibrationBtn.addEventListener('click', async () => {
-    noiseCalibrationBtn.textContent = 'Measuring ambient noise...';
-    try {
-      const res = await fetch('/api/calibrate-noise', { method: 'POST' });
-      const data = await res.json();
-      if (data.energy_threshold) {
-        energyThresholdSlider.value = data.energy_threshold;
-        energyVal.textContent = data.energy_threshold;
-        alert(`Noise calibrated! Ambient energy threshold set to ${data.energy_threshold}`);
+  // Engine select → show/hide whisper model group
+  if (engineSelect) {
+    engineSelect.addEventListener('change', () => {
+      state.currentEngine = engineSelect.value;
+      const whisperModelGroup = document.getElementById('whisperModelGroup');
+      if (whisperModelGroup) {
+        whisperModelGroup.style.display =
+          state.currentEngine === 'whisper' ? '' : 'none';
       }
-    } catch (e) {
-      alert('Calibration error: ' + e.message);
-    } finally {
-      noiseCalibrationBtn.textContent = 'Auto-Calibrate Noise Floor (1.0s)';
-    }
-  });
-}
 
-if (saveSettingsBtn) {
-  saveSettingsBtn.addEventListener('click', async () => {
-    const payload = {
-      engine: engineSelect.value,
-      whisper_model: whisperModelSelect.value,
-      energy_threshold: parseInt(energyThresholdSlider.value, 10),
-      wake_sensitivity: parseInt(wakeSensitivitySlider.value, 10)
-    };
-    try {
-      const res = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        headerEngineLabel.textContent = `${payload.engine.toUpperCase()}: Ready`;
-        engineBadge.textContent = `${payload.engine} (${payload.whisper_model})`;
-        alert('Engine settings saved successfully!');
+      // Update badges
+      const engineBadge = document.getElementById('engineBadge');
+      if (engineBadge) engineBadge.textContent = state.currentEngine;
+      const headerEngineLabel = document.getElementById('headerEngineLabel');
+      if (headerEngineLabel) headerEngineLabel.textContent = state.currentEngine;
+    });
+  }
+
+  // Energy threshold slider
+  if (energyThresholdSlider && energyVal) {
+    energyThresholdSlider.addEventListener('input', () => {
+      energyVal.textContent = energyThresholdSlider.value;
+    });
+  }
+
+  // Wake sensitivity slider
+  if (wakeSensitivitySlider && wakeVal) {
+    wakeSensitivitySlider.addEventListener('input', () => {
+      wakeVal.textContent = wakeSensitivitySlider.value + '%';
+    });
+  }
+
+  // Noise calibration
+  if (noiseCalibrationBtn) {
+    noiseCalibrationBtn.addEventListener('click', async () => {
+      noiseCalibrationBtn.disabled = true;
+      noiseCalibrationBtn.textContent = 'Calibrating…';
+
+      try {
+        const res = await fetch('/api/calibrate-noise', { method: 'POST' });
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        const data = await res.json();
+
+        if (energyThresholdSlider && data.threshold != null) {
+          energyThresholdSlider.value = data.threshold;
+          if (energyVal) energyVal.textContent = data.threshold;
+        }
+
+        noiseCalibrationBtn.textContent = 'Calibrated ✓';
+        setTimeout(() => {
+          noiseCalibrationBtn.textContent = 'Calibrate Noise';
+        }, 2000);
+      } catch (err) {
+        console.error('[Settings] Calibration failed:', err);
+        noiseCalibrationBtn.textContent = 'Calibration Failed';
+        setTimeout(() => {
+          noiseCalibrationBtn.textContent = 'Calibrate Noise';
+        }, 2000);
       }
-    } catch (err) {
-      alert('Save settings error: ' + err.message);
-    }
-  });
+      noiseCalibrationBtn.disabled = false;
+    });
+  }
+
+  // Save settings
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener('click', async () => {
+      saveSettingsBtn.disabled = true;
+      saveSettingsBtn.textContent = 'Saving…';
+
+      const payload = {
+        engine: engineSelect ? engineSelect.value : state.currentEngine,
+        whisperModel: whisperModelSelect
+          ? whisperModelSelect.value
+          : state.whisperModel,
+        energyThreshold: energyThresholdSlider
+          ? Number(energyThresholdSlider.value)
+          : 300,
+        wakeSensitivity: wakeSensitivitySlider
+          ? Number(wakeSensitivitySlider.value)
+          : 50
+      };
+
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+        state.currentEngine = payload.engine;
+        state.whisperModel = payload.whisperModel;
+
+        saveSettingsBtn.textContent = 'Saved ✓';
+        setTimeout(() => {
+          saveSettingsBtn.textContent = 'Save Settings';
+        }, 2000);
+      } catch (err) {
+        console.error('[Settings] Save failed:', err);
+        saveSettingsBtn.textContent = 'Save Failed';
+        setTimeout(() => {
+          saveSettingsBtn.textContent = 'Save Settings';
+        }, 2000);
+      }
+      saveSettingsBtn.disabled = false;
+    });
+  }
 }
 
-// ==========================================
-// 10. Initialization
-// ==========================================
+/* ────────────────────────────────────────────────────────────
+ *  §13  Utility Helpers
+ * ──────────────────────────────────────────────────────────── */
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  §14  Initialization
+ * ──────────────────────────────────────────────────────────── */
+
 window.addEventListener('DOMContentLoaded', () => {
+  initParticles();
+  initScrollReveal();
+  initStatCounters();
+  initTabs();
+  initFeatureChips();
   setupSpeechRecognition();
+  initWebSearch();
+  initVoiceTraining();
+  initTTS();
+  initSettings();
   loadVoiceProfiles();
-  updateSpotifyStatus();
 });

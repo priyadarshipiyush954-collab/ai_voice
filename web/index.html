@@ -3,99 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ether AI Voice - Intelligent Voice Assistant</title>
+  <title>Ether AI Voice — Intelligent Voice Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <!-- Top Navigation Header -->
+
+  <!-- Animated Background Mesh -->
+  <div class="bg-mesh" aria-hidden="true">
+    <div class="mesh-orb orb-1"></div>
+    <div class="mesh-orb orb-2"></div>
+    <div class="mesh-orb orb-3"></div>
+  </div>
+
+  <!-- Floating Particles Canvas -->
+  <canvas id="particlesCanvas" aria-hidden="true"></canvas>
+
+  <!-- Top Navigation -->
   <header class="app-header">
     <div class="header-container">
-      <div class="brand">
+      <div class="brand anim-slide-down">
         <div class="brand-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
             <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
             <line x1="12" x2="12" y1="19" y2="22"></line>
           </svg>
         </div>
         <div class="brand-text">
-          <span class="brand-title">Ether AI Voice</span>
-          <span class="brand-badge">v2.0 Pro</span>
+          <span class="brand-title">Ether</span>
+          <span class="brand-badge">AI Voice</span>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="nav-tabs" aria-label="Main Navigation">
+      <nav class="nav-tabs anim-slide-down" aria-label="Main Navigation">
         <button class="nav-tab active" data-tab="console" aria-selected="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
-            <path d="m9 8 4 4-4 4"></path>
-            <path d="M15 16h2"></path>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m9 8 4 4-4 4"></path></svg>
           Console
         </button>
         <button class="nav-tab" data-tab="training" aria-selected="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 12h2"></path><path d="M6 8v8"></path><path d="M10 4v16"></path><path d="M14 7v10"></path><path d="M18 10v4"></path><path d="M22 12h-2"></path>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h2"></path><path d="M6 8v8"></path><path d="M10 4v16"></path><path d="M14 7v10"></path><path d="M18 10v4"></path><path d="M22 12h-2"></path></svg>
           Voice Training
         </button>
         <button class="nav-tab" data-tab="web" aria-selected="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" x2="22" y1="12" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" x2="22" y1="12" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
           Web Analyzer
         </button>
-        <button class="nav-tab" data-tab="spotify" aria-selected="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 18V5l12-2v13"></path>
-            <circle cx="6" cy="18" r="3"></circle>
-            <circle cx="18" cy="16" r="3"></circle>
-          </svg>
-          Spotify Hub
-        </button>
         <button class="nav-tab" data-tab="settings" aria-selected="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           Settings
         </button>
       </nav>
 
-      <!-- System Status Indicator -->
-      <div class="header-status">
-        <span class="status-dot online"></span>
+      <div class="header-status anim-slide-down">
+        <span class="status-dot"></span>
         <span class="status-label" id="headerEngineLabel">Whisper: Ready</span>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
   <main class="main-content">
 
     <!-- ==================== TAB 1: CONSOLE ==================== -->
     <section id="tab-console" class="tab-pane active">
-      <div class="console-hero">
-        
-        <!-- Live Waveform Visualizer -->
-        <div class="visualizer-wrapper">
-          <canvas id="waveformCanvas" width="800" height="140"></canvas>
+
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-text-block anim-fade-up">
+          <h1 class="hero-title">
+            Your Voice,<br>
+            <span class="gradient-text">Amplified by AI.</span>
+          </h1>
+          <p class="hero-subtitle">Speak naturally. Ether uses transformer-level speech recognition to understand you with near-human accuracy — then searches the web, answers questions, and learns your voice.</p>
+        </div>
+
+        <!-- Waveform Visualizer -->
+        <div class="visualizer-wrapper anim-fade-up anim-delay-1">
+          <canvas id="waveformCanvas" width="900" height="160"></canvas>
           <div class="visualizer-overlay" id="visualizerOverlay">
-            <span class="visualizer-state" id="visualizerStateText">Click to Activate Microphone</span>
+            <span class="visualizer-state" id="visualizerStateText">Click microphone to activate</span>
           </div>
         </div>
 
-        <!-- Central Mic Interaction Zone -->
-        <div class="mic-control-center">
+        <!-- Mic Button -->
+        <div class="mic-control-center anim-fade-up anim-delay-2">
           <div class="mic-halo-container">
             <button id="micBtn" class="mic-button" aria-label="Toggle Voice Listening">
-              <svg class="mic-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="mic-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                 <line x1="12" x2="12" y1="19" y2="22"></line>
@@ -103,365 +99,253 @@
             </button>
             <div class="pulse-ring ring-1"></div>
             <div class="pulse-ring ring-2"></div>
+            <div class="pulse-ring ring-3"></div>
           </div>
           <div class="mic-instructions">
-            <span class="key-phrase">Wake word: "Ether"</span> &bull; 
-            <span id="micStatusText">Ready for speech</span>
+            <span class="key-phrase">Say "Ether"</span> to wake &bull;
+            <span id="micStatusText">Ready</span>
           </div>
         </div>
 
-        <!-- Quick Action Prompt Chips -->
-        <div class="quick-chips">
+        <!-- Feature Chips -->
+        <div class="feature-chips anim-fade-up anim-delay-3">
           <button class="chip" data-prompt="Analyze the web for latest breakthroughs in AI">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-            Analyze AI Breakthroughs
+            AI Breakthroughs
           </button>
           <button class="chip" data-prompt="What is quantum computing?">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
-            Explain Quantum Computing
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+            Quantum Computing
           </button>
-          <button class="chip" data-prompt="Play Bohemian Rhapsody on Spotify">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            Play Bohemian Rhapsody
+          <button class="chip" data-prompt="What are the latest discoveries in space?">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            Space Discoveries
           </button>
           <button class="chip" data-prompt="Who is the CEO of Google?">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            Who is CEO of Google?
+            CEO of Google
           </button>
         </div>
+      </div>
 
-        <!-- Live Transcription & Response Stream -->
-        <div class="console-cards-grid">
-          
-          <!-- Card: User Transcript -->
-          <div class="card transcript-card">
-            <div class="card-header">
-              <div class="card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span>Heard Voice Query</span>
+      <!-- Transcript & Response Cards -->
+      <div class="console-cards-grid">
+        <div class="glass-card transcript-card anim-card-reveal">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon-wrap icon-blue">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               </div>
-              <div class="badge-group">
-                <span id="confidenceBadge" class="badge badge-success">Confidence: 98%</span>
-                <span id="engineBadge" class="badge badge-muted">Whisper Base</span>
-              </div>
+              <span>Voice Input</span>
             </div>
-            <div class="card-body">
-              <p id="liveTranscript" class="transcript-text">"Say 'Ether' followed by a command or question, or click the microphone to speak."</p>
+            <div class="badge-group">
+              <span id="confidenceBadge" class="badge badge-glow">98%</span>
+              <span id="engineBadge" class="badge badge-muted">Whisper</span>
             </div>
           </div>
-
-          <!-- Card: Assistant Response -->
-          <div class="card response-card">
-            <div class="card-header">
-              <div class="card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 16v-4"></path>
-                  <path d="M12 8h.01"></path>
-                </svg>
-                <span>Ether Response</span>
-              </div>
-              <div class="card-actions">
-                <button id="speakResponseBtn" class="btn-icon" title="Repeat Voice Response">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="card-body">
-              <p id="responseSummary" class="response-text">
-                "Hello! I am Ether, your high-accuracy AI voice assistant. Ask me to search the web, analyze any topic, play music on Spotify, or train with your voice."
-              </p>
-              <div id="responseDetails" class="response-bullets"></div>
-            </div>
+          <div class="card-body">
+            <p id="liveTranscript" class="transcript-text">"Say 'Ether' followed by a command or question."</p>
           </div>
-
         </div>
 
+        <div class="glass-card response-card anim-card-reveal anim-delay-1">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon-wrap icon-violet">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+              </div>
+              <span>Ether Response</span>
+            </div>
+            <button id="speakResponseBtn" class="btn-icon-glow" title="Replay Response">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <p id="responseSummary" class="response-text">"Hello! I am Ether. Ask me to analyze the web, explain any topic, or train with your voice."</p>
+            <div id="responseDetails" class="response-bullets"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row anim-fade-up anim-delay-3">
+        <div class="stat-card glass-card">
+          <div class="stat-number" data-count="97">0</div>
+          <div class="stat-label">% Accuracy</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-number" data-count="400" data-suffix="ms">0</div>
+          <div class="stat-label">Avg Latency</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-number" data-count="3">0</div>
+          <div class="stat-label">AI Engines</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-number" data-count="16">0</div>
+          <div class="stat-label">MFCC Features</div>
+        </div>
+      </div>
+
     </section>
 
-    <!-- ==================== TAB 2: VOICE TRAINING STUDIO ==================== -->
+    <!-- ==================== TAB 2: VOICE TRAINING ==================== -->
     <section id="tab-training" class="tab-pane">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Voice Training & Speaker Calibration</h2>
-          <p class="section-subtitle">Train Ether with your voice to adapt acoustic thresholds, verify speaker identity, and enhance recognition precision.</p>
-        </div>
+      <div class="section-header anim-fade-up">
+        <h2 class="section-title">Voice Training <span class="gradient-text">&amp; Calibration</span></h2>
+        <p class="section-subtitle">Train Ether with your voice. Enroll acoustic profiles, verify speaker identity, and boost recognition precision.</p>
       </div>
 
       <div class="training-grid">
-        
-        <!-- Enrollment Wizard Card -->
-        <div class="card enrollment-card">
+        <div class="glass-card enrollment-card anim-card-reveal">
           <div class="card-header">
-            <h3 class="card-title">Enroll New Voice Profile</h3>
-            <span class="step-indicator" id="enrollmentStepText">Step 1 of 3</span>
+            <h3 class="card-title">Enroll Voice Profile</h3>
+            <span class="step-indicator" id="enrollmentStepText">Step 1 / 3</span>
           </div>
           <div class="card-body">
             <div class="form-group">
               <label for="speakerNameInput">Speaker Name</label>
-              <input type="text" id="speakerNameInput" class="input-text" placeholder="e.g., Alex / Primary User" value="My Voice">
+              <input type="text" id="speakerNameInput" class="input-text" placeholder="e.g., Alex" value="My Voice">
             </div>
 
             <div class="training-prompts-box">
               <div class="prompt-step active" id="pstep-1">
-                <span class="step-badge">Sample 1: Wake Word</span>
+                <span class="step-badge">1 &middot; Wake Word</span>
                 <p class="prompt-phrase">"Hey Ether, wake up and listen."</p>
               </div>
               <div class="prompt-step" id="pstep-2">
-                <span class="step-badge">Sample 2: Normal Speech</span>
+                <span class="step-badge">2 &middot; Speech</span>
                 <p class="prompt-phrase">"Analyze the web for latest discoveries."</p>
               </div>
               <div class="prompt-step" id="pstep-3">
-                <span class="step-badge">Sample 3: Music Command</span>
-                <p class="prompt-phrase">"Play my favorite song on Spotify."</p>
+                <span class="step-badge">3 &middot; Command</span>
+                <p class="prompt-phrase">"Tell me about quantum computing."</p>
               </div>
             </div>
 
-            <!-- Live Calibration Meters -->
             <div class="acoustic-meters">
-              <div class="meter-item">
-                <span class="meter-label">Live Pitch (F0)</span>
-                <span class="meter-val" id="meterPitch">-- Hz</span>
-              </div>
-              <div class="meter-item">
-                <span class="meter-label">Spectral Timbre</span>
-                <span class="meter-val" id="meterTimbre">--</span>
-              </div>
-              <div class="meter-item">
-                <span class="meter-label">Energy Level</span>
-                <span class="meter-val" id="meterEnergy">-- dB</span>
-              </div>
+              <div class="meter-item"><span class="meter-label">Pitch</span><span class="meter-val" id="meterPitch">-- Hz</span></div>
+              <div class="meter-item"><span class="meter-label">Timbre</span><span class="meter-val" id="meterTimbre">--</span></div>
+              <div class="meter-item"><span class="meter-label">Energy</span><span class="meter-val" id="meterEnergy">-- dB</span></div>
             </div>
 
             <div class="training-actions">
-              <button id="recordSampleBtn" class="btn btn-primary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
-                </svg>
+              <button id="recordSampleBtn" class="btn btn-primary btn-glow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3" fill="currentColor"></circle></svg>
                 <span id="recordSampleBtnText">Record Sample 1</span>
               </button>
-              <button id="resetEnrollmentBtn" class="btn btn-secondary">Reset</button>
+              <button id="resetEnrollmentBtn" class="btn btn-ghost">Reset</button>
             </div>
           </div>
         </div>
 
-        <!-- Voice Verification & Enrolled Profiles Card -->
-        <div class="card profiles-card">
+        <div class="glass-card profiles-card anim-card-reveal anim-delay-1">
           <div class="card-header">
-            <h3 class="card-title">Trained Profiles & Live Verification</h3>
-            <button id="refreshProfilesBtn" class="btn-icon" title="Refresh Profiles">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
-            </button>
+            <h3 class="card-title">Trained Profiles</h3>
+            <button id="refreshProfilesBtn" class="btn-icon-glow" title="Refresh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg></button>
           </div>
           <div class="card-body">
-            
             <div class="profiles-list" id="profilesContainer">
-              <!-- Dynamically populated profiles -->
               <div class="profile-item active">
                 <div class="profile-info">
-                  <span class="profile-name">Primary User (Default)</span>
-                  <span class="profile-meta">3 samples &bull; Pitch: 128 Hz &bull; Threshold: 75%</span>
+                  <span class="profile-name">Primary User</span>
+                  <span class="profile-meta">3 samples &bull; 128 Hz &bull; 75% threshold</span>
                 </div>
-                <span class="badge badge-success">Active</span>
+                <span class="badge badge-glow">Active</span>
               </div>
             </div>
 
             <div class="verification-tester">
-              <h4 class="tester-title">Test Speaker Verification</h4>
-              <p class="tester-desc">Speak into your mic to test whether Ether authenticates your voice match.</p>
-              
+              <h4 class="tester-title">Speaker Verification</h4>
+              <p class="tester-desc">Speak to test whether Ether recognizes your voice.</p>
               <div class="tester-row">
-                <button id="verifyVoiceBtn" class="btn btn-secondary">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+                <button id="verifyVoiceBtn" class="btn btn-ghost">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
                   Verify My Voice
                 </button>
-                <div class="verification-result" id="verifyResult">
-                  <span class="verify-badge">Awaiting test</span>
-                </div>
+                <div class="verification-result" id="verifyResult"><span class="verify-badge">Awaiting test</span></div>
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
     </section>
 
     <!-- ==================== TAB 3: WEB ANALYZER ==================== -->
     <section id="tab-web" class="tab-pane">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Deep Web Analysis & Research</h2>
-          <p class="section-subtitle">Real-time web scraping, multi-source synthesis, and structured key takeaways via voice command or query.</p>
-        </div>
+      <div class="section-header anim-fade-up">
+        <h2 class="section-title">Deep Web <span class="gradient-text">Analysis</span></h2>
+        <p class="section-subtitle">Real-time web scraping, multi-source synthesis, and structured key takeaways.</p>
       </div>
 
-      <div class="web-search-bar">
+      <div class="web-search-bar anim-fade-up anim-delay-1">
         <div class="search-input-wrapper">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
-          </svg>
-          <input type="text" id="webQueryInput" class="web-input" placeholder="Ask Ether to analyze anything on the web (e.g. latest tech news, science research, finance)...">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+          <input type="text" id="webQueryInput" class="web-input" placeholder='Ask anything — "latest AI research", "climate change facts"...'>
         </div>
-        <button id="webSearchBtn" class="btn btn-primary">
-          <span>Analyze Web</span>
-        </button>
+        <button id="webSearchBtn" class="btn btn-primary btn-glow">Analyze</button>
       </div>
 
-      <!-- Web Analysis Results Display -->
       <div class="web-results-container" id="webResultsContainer">
-        <div class="card empty-state-card" id="webEmptyState">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" x2="22" y1="12" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-          <p class="empty-title">Ready to Search & Analyze</p>
-          <p class="empty-subtitle">Type a query above or speak: "Ether, analyze the web for..."</p>
+        <div class="glass-card empty-state-card" id="webEmptyState">
+          <div class="empty-icon-wrap">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"></circle><line x1="2" x2="22" y1="12" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          </div>
+          <p class="empty-title">Ready to Research</p>
+          <p class="empty-subtitle">Type a query or say: "Ether, analyze the web for..."</p>
         </div>
       </div>
     </section>
 
-    <!-- ==================== TAB 4: SPOTIFY HUB ==================== -->
-    <section id="tab-spotify" class="tab-pane">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Spotify Media Controller</h2>
-          <p class="section-subtitle">Intelligent song matching, auto-device transfer, and hands-free voice playback.</p>
-        </div>
-      </div>
-
-      <div class="spotify-grid">
-        
-        <!-- Now Playing Card -->
-        <div class="card now-playing-card">
-          <div class="album-art-wrapper">
-            <img id="spAlbumArt" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Crect width='160' height='160' fill='%23F1F5F9'/%3E%3Cpath d='M60 80a20 20 0 1 0 40 0 20 20 0 1 0-40 0' fill='%23CBD5E1'/%3E%3C/svg%3E" alt="Album Art" class="album-art">
-          </div>
-          <div class="playback-details">
-            <h3 class="track-title" id="spTrackName">No track currently playing</h3>
-            <p class="track-artist" id="spTrackArtist">Connect Spotify to enable live playback</p>
-            <div class="progress-bar-container">
-              <div class="progress-fill" id="spProgressFill" style="width: 0%"></div>
-            </div>
-            <div class="playback-controls">
-              <button class="btn-control" id="spPrevBtn" title="Previous Track">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg>
-              </button>
-              <button class="btn-control-play" id="spPlayPauseBtn" title="Play/Pause">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              </button>
-              <button class="btn-control" id="spNextBtn" title="Next Track">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Search & Quick Play -->
-        <div class="card spotify-search-card">
-          <div class="card-header">
-            <h3 class="card-title">Instant Song Search</h3>
-          </div>
-          <div class="card-body">
-            <div class="form-group">
-              <label for="spotifySearchInput">Song or Artist Name</label>
-              <div class="input-action-row">
-                <input type="text" id="spotifySearchInput" class="input-text" placeholder="e.g. Starboy The Weeknd">
-                <button id="spotifySearchBtn" class="btn btn-primary">Play on Spotify</button>
-              </div>
-            </div>
-            <div class="spotify-status-note" id="spotifyStatusNote">
-              <span class="badge badge-muted">Status: Ready</span>
-              <p class="note-text">Say "Ether, play [song name]" from any tab to automatically launch and stream.</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ==================== TAB 5: SETTINGS ==================== -->
+    <!-- ==================== TAB 4: SETTINGS ==================== -->
     <section id="tab-settings" class="tab-pane">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Model Precision & Engine Configuration</h2>
-          <p class="section-subtitle">Fine-tune acoustic energy thresholds, Whisper transformer model sizes, and microphone calibration.</p>
-        </div>
+      <div class="section-header anim-fade-up">
+        <h2 class="section-title">Engine <span class="gradient-text">Configuration</span></h2>
+        <p class="section-subtitle">Fine-tune speech models, acoustic thresholds, and microphone calibration.</p>
       </div>
 
       <div class="settings-grid">
-        
-        <!-- Speech Recognition Engine Setting -->
-        <div class="card setting-card">
-          <div class="card-header">
-            <h3 class="card-title">Speech-to-Text Model</h3>
-          </div>
+        <div class="glass-card anim-card-reveal">
+          <div class="card-header"><h3 class="card-title">Speech-to-Text Model</h3></div>
           <div class="card-body">
             <div class="form-group">
               <label for="engineSelect">Active Engine</label>
               <select id="engineSelect" class="input-select">
-                <option value="whisper" selected>OpenAI Faster-Whisper (High Accuracy Transformer)</option>
-                <option value="google">Google Speech Recognition (Cloud Adaptive)</option>
-                <option value="browser">Browser Web Speech API (Instant Stream)</option>
+                <option value="whisper" selected>Faster-Whisper (Transformer)</option>
+                <option value="google">Google Speech (Cloud)</option>
+                <option value="browser">Browser Web Speech API</option>
               </select>
             </div>
-
             <div class="form-group" id="whisperModelGroup">
-              <label for="whisperModelSelect">Whisper Model Weight</label>
+              <label for="whisperModelSelect">Model Size</label>
               <select id="whisperModelSelect" class="input-select">
-                <option value="tiny.en">Tiny.en (Ultra-fast, lowest memory)</option>
-                <option value="base.en" selected>Base.en (Recommended - High speed & accuracy)</option>
-                <option value="small.en">Small.en (Maximum precision for accents)</option>
+                <option value="tiny.en">Tiny.en — Ultra-fast</option>
+                <option value="base.en" selected>Base.en — Recommended</option>
+                <option value="small.en">Small.en — Max precision</option>
               </select>
             </div>
           </div>
         </div>
 
-        <!-- Ambient Noise & Calibration -->
-        <div class="card setting-card">
-          <div class="card-header">
-            <h3 class="card-title">Acoustic Calibration</h3>
-          </div>
+        <div class="glass-card anim-card-reveal anim-delay-1">
+          <div class="card-header"><h3 class="card-title">Acoustic Calibration</h3></div>
           <div class="card-body">
             <div class="form-group">
-              <label for="noiseCalibrationBtn">Microphone Ambient Noise Floor</label>
-              <p class="helper-text">Measures background noise in your room to prevent false triggering.</p>
-              <button id="noiseCalibrationBtn" class="btn btn-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-                Auto-Calibrate Noise Floor (1.0s)
-              </button>
+              <label>Noise Floor</label>
+              <p class="helper-text">Measures room noise to prevent false triggers.</p>
+              <button id="noiseCalibrationBtn" class="btn btn-ghost">Auto-Calibrate (1.0s)</button>
             </div>
-
             <div class="form-group">
-              <div class="label-with-val">
-                <label for="energyThresholdSlider">Energy Threshold</label>
-                <span id="energyVal">400</span>
-              </div>
+              <div class="label-with-val"><label for="energyThresholdSlider">Energy Threshold</label><span id="energyVal">400</span></div>
               <input type="range" id="energyThresholdSlider" min="100" max="2500" step="50" value="400" class="input-range">
             </div>
-
             <div class="form-group">
-              <div class="label-with-val">
-                <label for="wakeSensitivitySlider">Wake-Word ("Ether") Sensitivity</label>
-                <span id="wakeVal">80%</span>
-              </div>
+              <div class="label-with-val"><label for="wakeSensitivitySlider">Wake Sensitivity</label><span id="wakeVal">80%</span></div>
               <input type="range" id="wakeSensitivitySlider" min="50" max="95" step="5" value="80" class="input-range">
             </div>
-
-            <button id="saveSettingsBtn" class="btn btn-primary">Save Engine Settings</button>
+            <button id="saveSettingsBtn" class="btn btn-primary btn-glow">Save Settings</button>
           </div>
         </div>
-
       </div>
     </section>
 
