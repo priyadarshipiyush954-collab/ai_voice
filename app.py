@@ -16,7 +16,7 @@ load_dotenv()
 from voice_engine.recognizer import HighAccuracyRecognizer
 from voice_engine.voice_trainer import VoiceTrainer
 from voice_engine.web_analyzer import WebAnalyzer
-from voice_engine.spotify_controller import SpotifyController
+from voice_engine.llm_provider import LLMProvider
 from voice_engine.tts import TextToSpeech
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -44,8 +44,16 @@ app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 # Instantiate Engines
 recognizer = HighAccuracyRecognizer(engine_type="whisper", model_size="base.en")
 voice_trainer = VoiceTrainer()
-web_analyzer = WebAnalyzer()
-spotify_controller = SpotifyController()
+
+# Initialize Local LLM Provider
+llm_provider = LLMProvider(
+    provider=os.getenv("LLM_PROVIDER", "ollama"),
+    model_name=os.getenv("LLM_MODEL", "neural-chat"),
+    endpoint=os.getenv("LLM_ENDPOINT", "http://localhost:11434"),
+    timeout=int(os.getenv("LLM_TIMEOUT", "30"))
+)
+
+web_analyzer = WebAnalyzer(llm_provider=llm_provider)
 tts = TextToSpeech()
 
 
@@ -62,6 +70,10 @@ class SettingsRequest(BaseModel):
     energy_threshold: Optional[int] = 400
     wake_sensitivity: Optional[int] = 80
 
+class LLMRenameRequest(BaseModel):
+    provider: str  # "ollama", "llama_cpp", "none"
+    model: str  # model name
+
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
@@ -75,12 +87,16 @@ async def serve_index():
 @app.get("/api/status")
 async def get_system_status():
     """Get system health, active model, and service status."""
+    llm_status = llm_provider.get_status()
     return {
         "status": "online",
         "engine": recognizer.engine_type,
         "whisper_model": recognizer.model_size,
         "active_profile": voice_trainer.active_profile,
-        "spotify_configured": spotify_controller.is_configured
+        "llm_configured": llm_status["available"],
+        "llm_model": llm_status.get("model"),
+        "llm_provider": llm_status["provider"],
+        "offline_mode": True
     }
 
 
@@ -145,35 +161,10 @@ async def analyze_web_query(req: QueryRequest):
     return result
 
 
-@app.post("/api/spotify/play")
-async def spotify_play(req: QueryRequest):
-    """Search and play a song on Spotify."""
-    result = spotify_controller.search_and_play(req.query.strip())
-    return result
-
-
-@app.post("/api/spotify/pause")
-async def spotify_pause():
-    """Pause Spotify playback."""
-    return spotify_controller.pause()
-
-
-@app.post("/api/spotify/next")
-async def spotify_next():
-    """Skip to next track on Spotify."""
-    return spotify_controller.next_track()
-
-
-@app.post("/api/spotify/previous")
-async def spotify_previous():
-    """Previous track on Spotify."""
-    return spotify_controller.previous_track()
-
-
-@app.get("/api/spotify/status")
-async def spotify_status():
-    """Get Spotify playback and current song status."""
-    return spotify_controller.get_status()
+@app.get("/api/llm/status")
+async def llm_status():
+    """Get local LLM status and configuration."""
+    return llm_provider.get_status()
 
 
 @app.post("/api/calibrate-noise")
@@ -196,6 +187,18 @@ async def update_settings(settings: SettingsRequest):
         "model": recognizer.model_size,
         "energy_threshold": settings.energy_threshold
     }
+
+@app.post("/api/llm/configure")
+async def configure_llm(req: QueryRequest):
+    """Configure local LLM provider and model."""
+    global llm_provider
+    llm_provider = LLMProvider(
+        provider=req.query or os.getenv("LLM_PROVIDER", "ollama"),
+        model_name=req.query or os.getenv("LLM_MODEL", "neural-chat"),
+        endpoint=os.getenv("LLM_ENDPOINT", "http://localhost:11434"),
+        timeout=int(os.getenv("LLM_TIMEOUT", "30"))
+    )
+    return {"success": True, "provider": llm_provider.provider, "model": llm_provider.model_name, "available": llm_provider.is_available}
 
 
 @app.post("/api/speak")

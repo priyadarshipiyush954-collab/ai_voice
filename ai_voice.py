@@ -23,7 +23,7 @@ load_dotenv()
 from voice_engine.recognizer import HighAccuracyRecognizer
 from voice_engine.voice_trainer import VoiceTrainer
 from voice_engine.web_analyzer import WebAnalyzer
-from voice_engine.spotify_controller import SpotifyController
+from voice_engine.llm_provider import LLMProvider
 from voice_engine.tts import TextToSpeech
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -32,8 +32,12 @@ logger = logging.getLogger("EtherVoice")
 # Initialize modules
 recognizer = HighAccuracyRecognizer(engine_type="whisper", model_size="base.en")
 voice_trainer = VoiceTrainer()
-web_analyzer = WebAnalyzer()
-spotify = SpotifyController()
+llm_provider = LLMProvider(
+    provider=os.getenv("LLM_PROVIDER", "ollama"),
+    model_name=os.getenv("LLM_MODEL", "neural-chat"),
+    endpoint=os.getenv("LLM_ENDPOINT", "http://localhost:11434")
+)
+web_analyzer = WebAnalyzer(llm_provider=llm_provider)
 tts = TextToSpeech()
 
 
@@ -46,8 +50,7 @@ def speak(text: str, block: bool = True):
 def handle_user_command(command: str):
     """
     Intelligent Command Dispatcher:
-    - Spotify Media Control
-    - Web Analysis & Search
+    - Local LLM Question Answering
     - Assistant Controls
     """
     cmd = command.lower().strip()
@@ -58,82 +61,62 @@ def handle_user_command(command: str):
         speak("Goodbye! Have a great day.")
         return False
 
-    # 2. Spotify Music Playback
-    if cmd.startswith("play ") or "play song" in cmd or "on spotify" in cmd:
-        song_query = cmd.replace("play song", "").replace("play", "").replace("on spotify", "").strip()
-        if not song_query:
-            speak("What song would you like me to play?")
-            return True
-
-        speak(f"Searching Spotify for {song_query}...")
-        res = spotify.search_and_play(song_query)
-        if res["success"]:
-            speak(f"Now playing {res['track_name']} by {res['artist']}")
-        else:
-            speak(res["message"])
-        return True
-
-    # 3. Spotify Control (Pause, Resume, Next, Previous)
-    if "pause music" in cmd or cmd == "pause":
-        spotify.pause()
-        speak("Music paused.")
-        return True
-
-    if "resume music" in cmd or cmd == "resume":
-        spotify.resume()
-        speak("Music resumed.")
-        return True
-
-    if "next song" in cmd or cmd == "skip":
-        spotify.next_track()
-        speak("Skipping to next track.")
-        return True
-
-    # 4. Web Analysis & Deep Research
-    if any(cmd.startswith(prefix) for prefix in ["analyze", "search", "what is", "who is", "tell me about", "latest news"]):
+    # 2. Question Answering with Local LLM
+    if any(cmd.startswith(prefix) for prefix in ["what is", "who is", "tell me about", "explain", "how does"]):
         # Extract core topic
         topic = cmd
-        for prefix in ["analyze the web for", "analyze", "search the web for", "search for", "search", "tell me about", "what is", "who is"]:
+        for prefix in ["tell me about", "what is", "who is", "explain", "how does"]:
             if topic.startswith(prefix):
                 topic = topic[len(prefix):].strip()
                 break
 
-        speak(f"Analyzing the web for {topic}...")
+        speak(f"Let me think about {topic}...")
         analysis = web_analyzer.analyze_web(topic)
-        
-        # Speak the concise executive summary
-        summary = analysis.get("spoken_summary", "I found some results on the web.")
+
+        # Speak the response
+        summary = analysis.get("spoken_summary", "I couldn't generate a response.")
         speak(summary)
 
-        # Print detailed takeaways in console
+        # Print status in console
+        if analysis.get("offline_mode"):
+            print(f"\n💡 Offline Mode: Response from local LLM")
+            print(f"   Model: {analysis.get('model', 'N/A')}")
+
         takeaways = analysis.get("key_takeaways", [])
         if takeaways:
-            print("\n📋 Key Takeaways:")
+            print("\n📋 Notes:")
             for item in takeaways:
                 print(f"  • {item}")
-
-        sources = analysis.get("sources", [])
-        if sources:
-            print("\n🔗 Top Sources:")
-            for s in sources[:3]:
-                print(f"  - {s['title']} ({s['url']})")
         return True
 
-    # 5. Default Fallback -> Web Search
-    speak(f"Let me look up {cmd} on the web.")
+    # 3. Default Fallback -> Try LLM
+    speak("Let me answer that for you.")
     analysis = web_analyzer.analyze_web(cmd)
-    speak(analysis.get("spoken_summary", "Here is what I found."))
+    speak(analysis.get("spoken_summary", "I couldn't process that request."))
     return True
 
 
 def run_voice_loop():
     """Continuous microphone listening loop with wake-word detection."""
-    print("=" * 65)
-    print("   🎙 ETHER AI VOICE ASSISTANT - HIGH ACCURACY ENGINE")
-    print(f"   Model: {recognizer.model_size} ({recognizer.engine_type})")
-    print(f"   Active Voice Profile: {voice_trainer.active_profile or 'None (Open mode)'}")
-    print("   Say 'Ether' to wake up.")
-    print("=" * 65)
+    # Check local LLM availability and display status
+llm_status_msg = "LLM: Not configured" if not llm_provider.is_available else f"LLM: {llm_provider.model_name}"
+if llm_provider.is_available:
+    try:
+        # Quick health check
+        status = llm_provider.get_status()
+        if status.get("error"):
+            llm_status_msg = f"LLM: Error - {status['error'][:50]}"
+    except:
+        llm_status_msg = "LLM: Connecting..."
+
+print("=" * 70)
+print("   🎙 ETHER AI VOICE ASSISTANT - OFFLINE-CAPABLE")
+print(f"   Whisper Model: {recognizer.model_size} ({recognizer.engine_type})")
+print(f"   Active Voice Profile: {voice_trainer.active_profile or 'None (Open mode)'}")
+print(f"   {llm_status_msg}")
+print(f"   Offline Mode: {'Enabled' if llm_provider.is_available else 'Limited - configure LLM for Q&A'}")
+print("   Say 'Ether' to wake up.")
+print("=" * 70)
 
     # Ambient noise calibration
     print("\n[Calibrating ambient noise floor...]")

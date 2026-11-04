@@ -3,11 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ether AI Voice — Intelligent Voice Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Ether AI Voice — Offline Voice Assistant</title>
+  <!-- Local fonts (no CDN - works offline) -->
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      font-display: swap;
+      src: local('Plus Jakarta Sans'), local('PlusJakartaSans');
+    }
+  </style>
   <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    /* Fallback font stack - no external CDN required */
+    body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
 </head>
 <body>
 
@@ -47,19 +56,15 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h2"></path><path d="M6 8v8"></path><path d="M10 4v16"></path><path d="M14 7v10"></path><path d="M18 10v4"></path><path d="M22 12h-2"></path></svg>
           Voice Training
         </button>
-        <button class="nav-tab" data-tab="web" aria-selected="false">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" x2="22" y1="12" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          Web Analyzer
-        </button>
         <button class="nav-tab" data-tab="settings" aria-selected="false">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           Settings
         </button>
       </nav>
 
       <div class="header-status anim-slide-down">
-        <span class="status-dot"></span>
-        <span class="status-label" id="headerEngineLabel">Whisper: Ready</span>
+        <span class="status-dot offline-indicator" id="statusDot"></span>
+        <span class="status-label" id="headerEngineLabel">Loading...</span>
       </div>
     </div>
   </header>
@@ -74,9 +79,9 @@
         <div class="hero-text-block anim-fade-up">
           <h1 class="hero-title">
             Your Voice,<br>
-            <span class="gradient-text">Amplified by AI.</span>
+            <span class="gradient-text">Amplified Offline.</span>
           </h1>
-          <p class="hero-subtitle">Speak naturally. Ether uses transformer-level speech recognition to understand you with near-human accuracy — then searches the web, answers questions, and learns your voice.</p>
+          <p class="hero-subtitle">Speak naturally. Ether uses local, on-device speech recognition and language models to answer questions, learn your voice, and operate completely offline — no cloud APIs required.</p>
         </div>
 
         <!-- Waveform Visualizer -->
@@ -109,21 +114,17 @@
 
         <!-- Feature Chips -->
         <div class="feature-chips anim-fade-up anim-delay-3">
-          <button class="chip" data-prompt="Analyze the web for latest breakthroughs in AI">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-            AI Breakthroughs
-          </button>
           <button class="chip" data-prompt="What is quantum computing?">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
             Quantum Computing
           </button>
-          <button class="chip" data-prompt="What are the latest discoveries in space?">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-            Space Discoveries
+          <button class="chip" data-prompt="Explain machine learning basics">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h2"></path><path d="M6 8v8"></path><path d="M10 4v16"></path><path d="M14 7v10"></path><path d="M18 10v4"></path><path d="M22 12h-2"></path></svg>
+            ML Basics
           </button>
-          <button class="chip" data-prompt="Who is the CEO of Google?">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            CEO of Google
+          <button class="chip" data-prompt="What are the benefits of renewable energy?">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+            Renewable Energy
           </button>
         </div>
       </div>
@@ -215,11 +216,11 @@
               </div>
               <div class="prompt-step" id="pstep-2">
                 <span class="step-badge">2 &middot; Speech</span>
-                <p class="prompt-phrase">"Analyze the web for latest discoveries."</p>
+                <p class="prompt-phrase">"Explain machine learning to me."</p>
               </div>
               <div class="prompt-step" id="pstep-3">
                 <span class="step-badge">3 &middot; Command</span>
-                <p class="prompt-phrase">"Tell me about quantum computing."</p>
+                <p class="prompt-phrase">"Tell me about renewable energy."</p>
               </div>
             </div>
 
@@ -274,25 +275,25 @@
     <!-- ==================== TAB 3: WEB ANALYZER ==================== -->
     <section id="tab-web" class="tab-pane">
       <div class="section-header anim-fade-up">
-        <h2 class="section-title">Deep Web <span class="gradient-text">Analysis</span></h2>
-        <p class="section-subtitle">Real-time web scraping, multi-source synthesis, and structured key takeaways.</p>
+        <h2 class="section-title">Offline <span class="gradient-text">Question Answering</span></h2>
+        <p class="section-subtitle">Ask questions using local language models — no internet required.</p>
       </div>
 
       <div class="web-search-bar anim-fade-up anim-delay-1">
         <div class="search-input-wrapper">
           <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-          <input type="text" id="webQueryInput" class="web-input" placeholder='Ask anything — "latest AI research", "climate change facts"...'>
+          <input type="text" id="webQueryInput" class="web-input" placeholder='Ask anything — "Explain ML", "What is quantum computing"...'>
         </div>
-        <button id="webSearchBtn" class="btn btn-primary btn-glow">Analyze</button>
+        <button id="webSearchBtn" class="btn btn-primary btn-glow">Ask Offline</button>
       </div>
 
       <div class="web-results-container" id="webResultsContainer">
         <div class="glass-card empty-state-card" id="webEmptyState">
           <div class="empty-icon-wrap">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"></circle><line x1="2" x2="22" y1="12" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
           </div>
-          <p class="empty-title">Ready to Research</p>
-          <p class="empty-subtitle">Type a query or say: "Ether, analyze the web for..."</p>
+          <p class="empty-title">Ready to Answer</p>
+          <p class="empty-subtitle">Type a question and ask offline with local AI</p>
         </div>
       </div>
     </section>
@@ -311,9 +312,7 @@
             <div class="form-group">
               <label for="engineSelect">Active Engine</label>
               <select id="engineSelect" class="input-select">
-                <option value="whisper" selected>Faster-Whisper (Transformer)</option>
-                <option value="google">Google Speech (Cloud)</option>
-                <option value="browser">Browser Web Speech API</option>
+                <option value="whisper" selected>Faster-Whisper (Local Transformer)</option>
               </select>
             </div>
             <div class="form-group" id="whisperModelGroup">

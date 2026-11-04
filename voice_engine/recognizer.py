@@ -29,14 +29,13 @@ except ImportError:
 
 class HighAccuracyRecognizer:
     """
-    Multi-Engine Speech Recognition System:
-    1. Faster-Whisper: Transformer-based local speech-to-text with prompt biasing and high accuracy.
-    2. Google Speech Engine: Tuned SpeechRecognition with adaptive noise calibration.
+    Local-Only Speech Recognition System using Faster-Whisper.
+    All transcription is performed on-device with no cloud API calls.
     """
 
     def __init__(
         self,
-        engine_type: str = "whisper",  # 'whisper' or 'google'
+        engine_type: str = "whisper",
         model_size: str = "base.en",
         device: str = "cpu",
         compute_type: str = "int8",
@@ -50,13 +49,13 @@ class HighAccuracyRecognizer:
         self.whisper_model = None
         self.sr_recognizer = None
 
-        # Spotify & Assistant vocabulary bias prompt for Whisper
+        # Assistant vocabulary bias prompt for Whisper
         self.initial_prompt = (
-            "Ether, Spotify, play, pause, song, album, artist, track, next, previous, "
-            "search, analyze, web, what is, latest news, volume, stop, resume."
+            "Ether, analyze, explain, what is, who is, tell me about, "
+            "search, volume, stop, resume, question, answer."
         )
 
-        # Initialize Google SpeechRecognition engine
+        # Initialize SpeechRecognition for microphone capture only
         if sr:
             self.sr_recognizer = sr.Recognizer()
             self.sr_recognizer.energy_threshold = energy_threshold
@@ -65,35 +64,41 @@ class HighAccuracyRecognizer:
             self.sr_recognizer.dynamic_energy_ratio = 1.5
             self.sr_recognizer.pause_threshold = 0.8
             self.sr_recognizer.non_speaking_duration = 0.5
-        
-        # Load Whisper model if selected or fallback
-        if self.engine_type == "whisper" and HAS_FASTER_WHISPER:
+
+        # Load Whisper model
+        if HAS_FASTER_WHISPER:
             self._load_whisper_model()
+        else:
+            logger.error("Faster-Whisper is required for offline speech recognition. Install with: pip install faster-whisper")
 
     def _load_whisper_model(self):
-        """Lazy load Whisper model."""
+        """Load local Whisper model for offline transcription."""
         if self.whisper_model is None and HAS_FASTER_WHISPER:
             try:
                 logger.info(f"Loading Whisper model '{self.model_size}' on {self.device} ({self.compute_type})...")
+                model_path = os.getenv(
+                    "WHISPER_MODEL_PATH",
+                    os.path.join(os.path.dirname(__file__), "..", ".cache", "whisper")
+                )
                 self.whisper_model = WhisperModel(
                     self.model_size,
                     device=self.device,
                     compute_type=self.compute_type,
-                    download_root=os.path.join(os.path.dirname(__file__), "..", ".cache", "whisper")
+                    download_root=model_path
                 )
-                logger.info("Whisper model loaded successfully.")
+                logger.info(f"Whisper model loaded successfully from {model_path}")
             except Exception as e:
-                logger.warning(f"Could not load faster-whisper model '{self.model_size}': {e}. Falling back to Google SR.")
-                self.engine_type = "google"
+                logger.error(f"Failed to load Whisper model: {e}")
+                logger.error("Ensure model is downloaded or WHISPER_MODEL_PATH is set correctly")
+                logger.error("Models can be pre-downloaded with: python -c \"from faster_whisper import WhisperModel; WhisperModel('base.en')\"")
 
     def set_engine(self, engine_type: str, model_size: Optional[str] = None):
-        """Switch recognition engine dynamically."""
+        """Switch Whisper model dynamically."""
         self.engine_type = engine_type
         if model_size and model_size != self.model_size:
             self.model_size = model_size
             self.whisper_model = None
-            if engine_type == "whisper":
-                self._load_whisper_model()
+            self._load_whisper_model()
 
     def calibrate_noise(self, duration: float = 1.0):
         """Calibrate microphone for ambient noise floor."""
@@ -140,28 +145,31 @@ class HighAccuracyRecognizer:
 
     def transcribe_audio_bytes(self, audio_bytes: bytes) -> Dict[str, Any]:
         """
-        Transcribe audio bytes (WAV/PCM) using active engine.
-        Falls back automatically if primary engine encounters an issue.
+        Transcribe audio bytes (WAV/PCM) using local Whisper model.
+        No cloud API calls are made.
         """
         start_time = time.time()
 
-        # Try Whisper first if selected
-        if self.engine_type == "whisper":
-            if self.whisper_model is None:
-                self._load_whisper_model()
+        if self.whisper_model is None:
+            return {
+                "success": False,
+                "error": "Whisper model not loaded. Ensure faster-whisper is installed and model is available.",
+                "text": "",
+                "latency_ms": 0
+            }
 
-            if self.whisper_model:
-                try:
-                    result = self._transcribe_with_whisper(audio_bytes)
-                    result["latency_ms"] = int((time.time() - start_time) * 1000)
-                    return result
-                except Exception as e:
-                    logger.warning(f"Whisper transcription failed: {e}. Falling back to Google Speech.")
-
-        # Fallback to Google Speech
-        result = self._transcribe_with_google(audio_bytes)
-        result["latency_ms"] = int((time.time() - start_time) * 1000)
-        return result
+        try:
+            result = self._transcribe_with_whisper(audio_bytes)
+            result["latency_ms"] = int((time.time() - start_time) * 1000)
+            return result
+        except Exception as e:
+            logger.error(f"Whisper transcription failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "text": "",
+                "latency_ms": int((time.time() - start_time) * 1000)
+            }
 
     def _wav_bytes_to_float32(self, audio_bytes: bytes) -> Optional[np.ndarray]:
         """Convert standard WAV bytes to float32 NumPy array at 16kHz without disk I/O."""
@@ -241,7 +249,8 @@ class HighAccuracyRecognizer:
                 "confidence": round(avg_conf, 2),
                 "engine": "faster-whisper",
                 "model": self.model_size,
-                "language": getattr(info, "language", "en")
+                "language": getattr(info, "language", "en"),
+                "offline_mode": True
             }
         finally:
             if tmp_path and os.path.exists(tmp_path):
@@ -249,41 +258,3 @@ class HighAccuracyRecognizer:
                     os.remove(tmp_path)
                 except OSError:
                     pass
-
-    def _transcribe_with_google(self, audio_bytes: bytes) -> Dict[str, Any]:
-        """Transcribe using Google Speech Recognition."""
-        if not sr or not self.sr_recognizer:
-            return {"success": False, "error": "SpeechRecognition not initialized", "text": ""}
-
-        try:
-            with io.BytesIO(audio_bytes) as audio_file:
-                with sr.AudioFile(audio_file) as source:
-                    audio_data = self.sr_recognizer.record(source)
-
-            # Request with confidence
-            response = self.sr_recognizer.recognize_google(audio_data, show_all=True)
-            if not response or not isinstance(response, dict) or "alternative" not in response:
-                return {
-                    "success": True,
-                    "text": "",
-                    "confidence": 0.0,
-                    "engine": "google-speech",
-                    "note": "No intelligible speech detected"
-                }
-
-            best = response["alternative"][0]
-            transcript = best.get("transcript", "").strip()
-            confidence = best.get("confidence", 0.85)
-
-            return {
-                "success": True,
-                "text": transcript,
-                "confidence": round(float(confidence), 2),
-                "engine": "google-speech"
-            }
-        except sr.UnknownValueError:
-            return {"success": True, "text": "", "confidence": 0.0, "engine": "google-speech"}
-        except sr.RequestError as e:
-            return {"success": False, "error": f"Google Speech Network error: {e}", "text": ""}
-        except Exception as e:
-            return {"success": False, "error": str(e), "text": ""}
