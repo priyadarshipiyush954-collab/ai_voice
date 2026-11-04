@@ -1,6 +1,6 @@
 /* ============================================================
  *  Ether AI Voice — Frontend Controller
- *  Production-quality vanilla JS · No frameworks · No Spotify
+ *  Production-quality vanilla JS · No frameworks
  * ============================================================ */
 
 'use strict';
@@ -14,13 +14,16 @@ const state = {
   isRecordingSample: false,
   audioContext: null,
   analyser: null,
+  visualizerFrame: null,
   micStream: null,
   mediaRecorder: null,
   audioChunks: [],
   enrollmentStep: 1,
   enrollmentSamples: [],
+  isSubmittingEnrollment: false,
   activeProfile: null,
   currentEngine: 'whisper',
+  engineLabel: 'Checking engine',
   whisperModel: 'base.en',
   recognition: null
 };
@@ -240,26 +243,44 @@ function initStatCounters() {
  * ──────────────────────────────────────────────────────────── */
 
 function initTabs() {
-  document.querySelectorAll('.nav-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      // Remove active from all tabs
-      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-      // Set clicked tab active
-      tab.classList.add('active');
+  const tabs = Array.from(document.querySelectorAll('.nav-tab'));
 
-      const target = tab.getAttribute('data-tab');
-      // Hide all panes, show target
-      document.querySelectorAll('.tab-pane').forEach(pane => {
-        pane.classList.remove('active');
-      });
-      const targetPane = document.getElementById(target);
-      if (targetPane) {
-        targetPane.classList.add('active');
-        // Re-observe reveal animations in newly visible pane
-        reobserveRevealElements(targetPane);
-      }
+  function activateTab(tab, moveFocus = false) {
+    const target = tab.getAttribute('data-tab');
+
+    tabs.forEach(item => {
+      const selected = item === tab;
+      item.classList.toggle('active', selected);
+      item.setAttribute('aria-selected', String(selected));
+      item.tabIndex = selected ? 0 : -1;
+    });
+
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+      const selected = pane.id === `tab-${target}`;
+      pane.classList.toggle('active', selected);
+      pane.setAttribute('aria-hidden', String(!selected));
+    });
+
+    if (moveFocus) tab.focus();
+  }
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => activateTab(tab));
+    tab.addEventListener('keydown', event => {
+      let nextIndex = index;
+      if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = tabs.length - 1;
+      else return;
+
+      event.preventDefault();
+      activateTab(tabs[nextIndex], true);
     });
   });
+
+  const selectedTab = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
+  if (selectedTab) activateTab(selectedTab);
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -317,6 +338,7 @@ function initAudioContext() {
 function drawVisualizer() {
   const canvas = document.getElementById('waveformCanvas');
   if (!canvas || !state.analyser) return;
+  if (state.visualizerFrame !== null) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -326,7 +348,8 @@ function drawVisualizer() {
   const dataArray = new Uint8Array(bufferLength);
 
   function draw() {
-    requestAnimationFrame(draw);
+    state.visualizerFrame = null;
+    if (document.hidden) return;
 
     state.analyser.getByteFrequencyData(dataArray);
 
@@ -349,16 +372,16 @@ function drawVisualizer() {
       const barHeight = (v / 255) * canvas.height * 0.85;
 
       if (state.isListening) {
-        // Red spectrum when listening
-        const r = 200 + Math.floor((v / 255) * 55);
-        const g = 30 + Math.floor((v / 255) * 30);
-        const b = 30;
+        // Purple spectrum while the microphone is active.
+        const r = 78 + Math.floor((v / 255) * 72);
+        const g = 49 + Math.floor((v / 255) * 38);
+        const b = 128 + Math.floor((v / 255) * 90);
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
       } else {
-        // Indigo spectrum
-        const r = 60 + Math.floor((v / 255) * 19);
-        const g = 50 + Math.floor((v / 255) * 20);
-        const b = 180 + Math.floor((v / 255) * 49);
+        // Blue spectrum while idle.
+        const r = 49 + Math.floor((v / 255) * 35);
+        const g = 87 + Math.floor((v / 255) * 61);
+        const b = 166 + Math.floor((v / 255) * 70);
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
       }
 
@@ -376,10 +399,18 @@ function drawVisualizer() {
         overlay.style.display = 'none';
       }
     }
+
+    if (state.isListening) {
+      state.visualizerFrame = requestAnimationFrame(draw);
+    }
   }
 
   draw();
 }
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.isListening) drawVisualizer();
+});
 
 function updateAcousticMeters(dataArray, bufferLength) {
   // Pitch — weighted towards lower frequencies
@@ -525,6 +556,7 @@ async function startListening() {
   }
 
   state.isListening = true;
+  drawVisualizer();
   updateMicUI();
 }
 
@@ -537,27 +569,65 @@ function stopListening() {
     }
   }
   state.isListening = false;
+  if (state.visualizerFrame !== null) {
+    cancelAnimationFrame(state.visualizerFrame);
+    state.visualizerFrame = null;
+  }
   updateMicUI();
 }
 
 function updateMicUI() {
   const micBtn = document.getElementById('micBtn');
   const micStatusText = document.getElementById('micStatusText');
+  const visualizerOverlay = document.getElementById('visualizerOverlay');
   const visualizerStateText = document.getElementById('visualizerStateText');
   const headerEngineLabel = document.getElementById('headerEngineLabel');
+  const statusDot = document.getElementById('statusDot');
 
   if (micBtn) {
     micBtn.classList.toggle('listening', state.isListening);
     micBtn.setAttribute('aria-pressed', String(state.isListening));
+    micBtn.setAttribute('aria-label', state.isListening ? 'Stop voice listening' : 'Start voice listening');
   }
   if (micStatusText) {
     micStatusText.textContent = state.isListening ? 'Listening…' : 'Click to start';
   }
   if (visualizerStateText) {
-    visualizerStateText.textContent = state.isListening ? 'LIVE' : 'STANDBY';
+    visualizerStateText.textContent = state.isListening ? 'Listening for your voice' : 'Start listening to see the signal';
   }
+  if (visualizerOverlay) visualizerOverlay.style.display = state.isListening ? 'none' : 'grid';
   if (headerEngineLabel) {
-    headerEngineLabel.textContent = state.currentEngine;
+    headerEngineLabel.textContent = state.isListening ? 'Listening' : state.engineLabel;
+  }
+  if (statusDot) {
+    statusDot.classList.toggle('is-ready', !state.isListening && state.engineLabel.includes('local'));
+  }
+}
+
+async function loadSystemStatus() {
+  const headerEngineLabel = document.getElementById('headerEngineLabel');
+  const statusDot = document.getElementById('statusDot');
+  if (!headerEngineLabel || !statusDot) return;
+
+  try {
+    const res = await fetch('/api/status');
+    if (!res.ok) throw new Error(`Status request failed: ${res.status}`);
+    const data = await res.json();
+    const isHosted = data.environment === 'vercel-serverless';
+    const engine = data.whisper_model
+      ? `Whisper ${data.whisper_model}`
+      : (data.engine || 'Voice engine');
+
+    state.engineLabel = isHosted ? 'Serverless runtime' : `${engine} · local`;
+    statusDot.classList.toggle('is-hosted', isHosted);
+    statusDot.classList.toggle('is-offline', false);
+    statusDot.classList.toggle('is-ready', !isHosted && Boolean(data.offline_mode));
+    headerEngineLabel.textContent = state.isListening ? 'Listening' : state.engineLabel;
+  } catch (err) {
+    state.engineLabel = 'Local engine unavailable';
+    statusDot.classList.remove('is-ready', 'is-hosted');
+    statusDot.classList.add('is-offline');
+    headerEngineLabel.textContent = state.engineLabel;
   }
 }
 
@@ -586,7 +656,7 @@ function handleVoiceCommand(raw) {
     return;
   }
 
-  // Everything else → web analysis as fallback (no Spotify)
+  // Other commands use offline question answering.
   executeWebAnalysis(cmd);
 }
 
@@ -733,24 +803,34 @@ function initWebSearch() {
 
 function initVoiceTraining() {
   const recordSampleBtn = document.getElementById('recordSampleBtn');
-  const recordSampleBtnText = document.getElementById('recordSampleBtnText');
   const resetEnrollmentBtn = document.getElementById('resetEnrollmentBtn');
-  const enrollmentStepText = document.getElementById('enrollmentStepText');
   const verifyVoiceBtn = document.getElementById('verifyVoiceBtn');
   const verifyResult = document.getElementById('verifyResult');
   const refreshProfilesBtn = document.getElementById('refreshProfilesBtn');
+  updateEnrollmentUI();
 
   // Record sample button
   if (recordSampleBtn) {
     recordSampleBtn.addEventListener('click', async () => {
-      if (state.isRecordingSample) return;
-      state.isRecordingSample = true;
+      if (state.isRecordingSample || state.isSubmittingEnrollment) return;
+      if (state.enrollmentSamples.length >= 3) {
+        submitVoiceEnrollment();
+        return;
+      }
+      const speakerNameInput = document.getElementById('speakerNameInput');
+      if (!speakerNameInput || !speakerNameInput.value.trim()) {
+        updateEnrollmentUI('Add a profile name before recording.');
+        speakerNameInput?.focus();
+        document.getElementById('trainingStatus')?.classList.add('is-error');
+        return;
+      }
 
-      if (recordSampleBtnText) recordSampleBtnText.textContent = 'Recording…';
-      recordSampleBtn.disabled = true;
+      state.isRecordingSample = true;
+      updateEnrollmentUI();
 
       try {
         await initAudioContext();
+        if (!window.MediaRecorder) throw new Error('Audio recording is not supported by this browser.');
 
         const recorder = new MediaRecorder(state.micStream);
         const chunks = [];
@@ -762,19 +842,12 @@ function initVoiceTraining() {
         recorder.onstop = () => {
           const blob = new Blob(chunks, { type: 'audio/webm' });
           state.enrollmentSamples.push(blob);
-
-          if (state.enrollmentStep < 3) {
-            state.enrollmentStep++;
-            updateEnrollmentUI();
-          } else {
-            // All 3 samples collected
-            updateEnrollmentUI();
-            submitVoiceEnrollment();
-          }
-
           state.isRecordingSample = false;
-          recordSampleBtn.disabled = false;
-          if (recordSampleBtnText) recordSampleBtnText.textContent = 'Record Sample';
+          state.enrollmentStep = Math.min(state.enrollmentSamples.length + 1, 3);
+          updateEnrollmentUI(state.enrollmentSamples.length === 3
+            ? 'All three phrases are recorded. Saving your profile…'
+            : 'Sample saved. The next phrase is ready.');
+          if (state.enrollmentSamples.length === 3) submitVoiceEnrollment();
         };
 
         recorder.start();
@@ -785,8 +858,8 @@ function initVoiceTraining() {
       } catch (err) {
         console.error('[Training] Record sample failed:', err);
         state.isRecordingSample = false;
-        recordSampleBtn.disabled = false;
-        if (recordSampleBtnText) recordSampleBtnText.textContent = 'Record Sample';
+        updateEnrollmentUI(err.message || 'Microphone access failed. Allow microphone access, then try again.');
+        document.getElementById('trainingStatus')?.classList.add('is-error');
       }
     });
   }
@@ -827,8 +900,8 @@ function initVoiceTraining() {
 
             if (verifyResult) {
               verifyResult.textContent = data.match
-                ? `✓ Match: ${data.speaker || 'Identified'} (${Math.round((data.confidence || 0) * 100)}%)`
-                : `✗ No match found (${Math.round((data.confidence || 0) * 100)}% confidence)`;
+                ? `Voice matched ${data.speaker || 'a saved profile'} (${Math.round((data.confidence || 0) * 100)}% confidence).`
+                : `No saved profile matched (${Math.round((data.confidence || 0) * 100)}% confidence).`;
               verifyResult.className = data.match ? 'verify-match' : 'verify-nomatch';
             }
           } catch (err) {
@@ -846,7 +919,10 @@ function initVoiceTraining() {
       } catch (err) {
         console.error('[Training] Verify init failed:', err);
         verifyVoiceBtn.disabled = false;
-        if (verifyResult) verifyResult.textContent = 'Microphone access failed.';
+        if (verifyResult) {
+          verifyResult.textContent = 'Microphone access failed. Allow microphone access, then try again.';
+          verifyResult.className = 'verify-nomatch';
+        }
       }
     });
   }
@@ -856,18 +932,78 @@ function initVoiceTraining() {
     refreshProfilesBtn.addEventListener('click', loadVoiceProfiles);
   }
 
-  function updateEnrollmentUI() {
-    if (enrollmentStepText) {
-      enrollmentStepText.textContent = `Step ${state.enrollmentStep} of 3`;
+}
+
+function updateEnrollmentUI(message) {
+  const enrollmentStepText = document.getElementById('enrollmentStepText');
+  const trainingStatus = document.getElementById('trainingStatus');
+  const recordSampleBtn = document.getElementById('recordSampleBtn');
+  const recordSampleBtnText = document.getElementById('recordSampleBtnText');
+  const resetEnrollmentBtn = document.getElementById('resetEnrollmentBtn');
+  const workbench = document.querySelector('.training-workbench');
+  const completed = Math.min(state.enrollmentSamples.length, 3);
+  const currentStep = Math.min(completed + 1, 3);
+  const allRecorded = completed === 3;
+
+  document.querySelectorAll('.prompt-step').forEach((step, index) => {
+    const isComplete = index < completed;
+    const isActive = !allRecorded && index === completed;
+    step.classList.toggle('is-complete', isComplete);
+    step.classList.toggle('active', isActive);
+    if (isActive) step.setAttribute('aria-current', 'step');
+    else step.removeAttribute('aria-current');
+
+    const promptState = step.querySelector('.prompt-state');
+    if (promptState) {
+      promptState.textContent = isComplete
+        ? 'Sample recorded'
+        : isActive && state.isRecordingSample
+          ? 'Recording now'
+          : isActive
+            ? 'Ready to record'
+            : (index === 2 ? 'Final phrase' : 'Next phrase');
     }
+  });
+
+  if (enrollmentStepText) {
+    enrollmentStepText.textContent = state.isSubmittingEnrollment
+      ? 'Saving profile…'
+      : allRecorded
+        ? '3 of 3 recorded'
+        : state.isRecordingSample
+          ? `Recording ${currentStep} of 3`
+          : `Step ${currentStep} of 3`;
   }
+  if (trainingStatus) {
+    trainingStatus.textContent = message || (state.isRecordingSample
+      ? 'Recording this phrase now. Keep speaking until the capture finishes.'
+      : allRecorded
+        ? 'All three phrases are ready to save.'
+        : completed > 0
+          ? 'Sample saved. The next phrase is ready.'
+          : 'Speak the phrase clearly; each sample records for about three seconds.');
+    trainingStatus.classList.toggle('is-recording', state.isRecordingSample);
+    trainingStatus.classList.remove('is-error', 'is-success');
+  }
+  if (workbench) workbench.classList.toggle('is-recording', state.isRecordingSample);
+  if (recordSampleBtn) recordSampleBtn.disabled = state.isRecordingSample || state.isSubmittingEnrollment;
+  if (recordSampleBtnText) {
+    recordSampleBtnText.textContent = state.isRecordingSample
+      ? 'Recording…'
+      : state.isSubmittingEnrollment
+        ? 'Saving profile…'
+        : allRecorded
+          ? 'Save voice profile'
+          : `Record sample ${currentStep}`;
+  }
+  if (resetEnrollmentBtn) resetEnrollmentBtn.disabled = state.isRecordingSample || state.isSubmittingEnrollment;
 }
 
 function resetEnrollment() {
   state.enrollmentStep = 1;
   state.enrollmentSamples = [];
-  const enrollmentStepText = document.getElementById('enrollmentStepText');
-  if (enrollmentStepText) enrollmentStepText.textContent = 'Step 1 of 3';
+  state.isSubmittingEnrollment = false;
+  updateEnrollmentUI('Training reset. Start again with the first phrase.');
 }
 
 async function submitVoiceEnrollment() {
@@ -876,18 +1012,21 @@ async function submitVoiceEnrollment() {
   const name = speakerNameInput ? speakerNameInput.value.trim() : '';
 
   if (!name) {
-    if (enrollmentStepText) enrollmentStepText.textContent = 'Please enter a speaker name.';
-    resetEnrollment();
+    state.isSubmittingEnrollment = false;
+    updateEnrollmentUI('Add a profile name before saving these samples.');
+    document.getElementById('trainingStatus')?.classList.add('is-error');
+    speakerNameInput?.focus();
     return;
   }
 
-  if (enrollmentStepText) enrollmentStepText.textContent = 'Submitting…';
+  state.isSubmittingEnrollment = true;
+  updateEnrollmentUI('Saving the voice profile…');
 
   try {
     const formData = new FormData();
-    formData.append('name', name);
-    state.enrollmentSamples.forEach((blob, i) => {
-      formData.append(`sample_${i}`, blob, `sample_${i}.webm`);
+    formData.append('speaker_name', name);
+    state.enrollmentSamples.forEach(blob => {
+      formData.append('samples', blob, 'voice-sample.webm');
     });
 
     const res = await fetch('/api/train-voice', {
@@ -898,20 +1037,18 @@ async function submitVoiceEnrollment() {
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
     const data = await res.json();
-    if (enrollmentStepText) {
-      enrollmentStepText.textContent = data.message || 'Enrollment complete!';
-    }
-
-    // Refresh profiles
-    loadVoiceProfiles();
+    state.enrollmentSamples = [];
+    state.enrollmentStep = 1;
+    state.isSubmittingEnrollment = false;
+    updateEnrollmentUI(data.message || `${name}’s voice profile is saved.`);
+    document.getElementById('trainingStatus')?.classList.add('is-success');
+    await loadVoiceProfiles();
   } catch (err) {
     console.error('[Training] Enrollment submission failed:', err);
-    if (enrollmentStepText) enrollmentStepText.textContent = 'Enrollment failed.';
+    state.isSubmittingEnrollment = false;
+    updateEnrollmentUI('The profile could not be saved. Check the local server, then retry.');
+    document.getElementById('trainingStatus')?.classList.add('is-error');
   }
-
-  // Reset for next enrollment
-  state.enrollmentSamples = [];
-  state.enrollmentStep = 1;
 }
 
 async function loadVoiceProfiles() {
@@ -922,7 +1059,9 @@ async function loadVoiceProfiles() {
     const res = await fetch('/api/voice-profiles');
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-    const profiles = await res.json();
+    const payload = await res.json();
+    const profiles = Array.isArray(payload) ? payload : (payload.profiles || []);
+    const activeProfile = Array.isArray(payload) ? null : payload.active;
 
     if (!Array.isArray(profiles) || profiles.length === 0) {
       profilesContainer.innerHTML =
@@ -933,9 +1072,10 @@ async function loadVoiceProfiles() {
     profilesContainer.innerHTML = profiles
       .map(
         (p) => `
-        <div class="profile-item glass-card" data-profile-id="${escapeAttr(p.id || '')}">
+        <div class="profile-item" data-profile-id="${escapeAttr(p.id || '')}">
           <span class="profile-name">${escapeHTML(p.name || 'Unknown')}</span>
-          <span class="profile-meta">${escapeHTML(p.samples ? p.samples + ' samples' : '')}</span>
+          <span class="profile-meta">${escapeHTML(p.samples ? p.samples + ' samples' : p.sample_count ? p.sample_count + ' samples' : '')}</span>
+          ${p.id && p.id === activeProfile ? '<span class="badge badge-glow">Active</span>' : ''}
         </div>`
       )
       .join('');
@@ -1127,9 +1267,6 @@ function escapeAttr(str) {
  * ──────────────────────────────────────────────────────────── */
 
 window.addEventListener('DOMContentLoaded', () => {
-  initParticles();
-  initScrollReveal();
-  initStatCounters();
   initTabs();
   initFeatureChips();
   setupSpeechRecognition();
@@ -1137,5 +1274,6 @@ window.addEventListener('DOMContentLoaded', () => {
   initVoiceTraining();
   initTTS();
   initSettings();
+  loadSystemStatus();
   loadVoiceProfiles();
 });
