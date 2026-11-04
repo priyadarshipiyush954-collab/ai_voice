@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T11:50:23Z",
+  "title": "Design System: Ether AI Voice",
+  "extensions": {
+    "colorMeta": {
+      "sky": {"role":"neutral","displayName":"Blue Paper","canonical":"#e9f4ff","tonalRamp":["oklch(15% 0.035 245)","oklch(25% 0.035 245)","oklch(35% 0.035 245)","oklch(45% 0.035 245)","oklch(55% 0.035 245)","oklch(65% 0.035 245)","oklch(80% 0.035 245)","oklch(95% 0.035 245)"]},
+      "sky-deep": {"role":"neutral","displayName":"Rehearsal Blue","canonical":"#d9ecfb","tonalRamp":["oklch(15% 0.035 245)","oklch(25% 0.035 245)","oklch(35% 0.035 245)","oklch(45% 0.035 245)","oklch(55% 0.035 245)","oklch(65% 0.035 245)","oklch(80% 0.035 245)","oklch(95% 0.035 245)"]},
+      "paper": {"role":"neutral","displayName":"Cool Paper","canonical":"#f8fbff","tonalRamp":["oklch(15% 0.008 250)","oklch(25% 0.008 250)","oklch(35% 0.008 250)","oklch(45% 0.008 250)","oklch(55% 0.008 250)","oklch(65% 0.008 250)","oklch(80% 0.008 250)","oklch(95% 0.008 250)"]},
+      "white": {"role":"neutral","displayName":"White","canonical":"#ffffff","tonalRamp":["oklch(15% 0.005 250)","oklch(25% 0.005 250)","oklch(35% 0.005 250)","oklch(45% 0.005 250)","oklch(55% 0.005 250)","oklch(65% 0.005 250)","oklch(80% 0.005 250)","oklch(95% 0.005 250)"]},
+      "ink": {"role":"neutral","displayName":"Violet Ink","canonical":"#281541","tonalRamp":["oklch(15% 0.055 295)","oklch(25% 0.055 295)","oklch(35% 0.055 295)","oklch(45% 0.055 295)","oklch(55% 0.055 295)","oklch(65% 0.055 295)","oklch(80% 0.055 295)","oklch(95% 0.055 295)"]},
+      "ink-soft": {"role":"neutral","displayName":"Soft Violet Ink","canonical":"#4d3a66","tonalRamp":["oklch(15% 0.055 295)","oklch(25% 0.055 295)","oklch(35% 0.055 295)","oklch(45% 0.055 295)","oklch(55% 0.055 295)","oklch(65% 0.055 295)","oklch(80% 0.055 295)","oklch(95% 0.055 295)"]},
+      "ink-muted": {"role":"neutral","displayName":"Muted Violet Ink","canonical":"#685a7c","tonalRamp":["oklch(15% 0.045 295)","oklch(25% 0.045 295)","oklch(35% 0.045 295)","oklch(45% 0.045 295)","oklch(55% 0.045 295)","oklch(65% 0.045 295)","oklch(80% 0.045 295)","oklch(95% 0.045 295)"]},
+      "purple": {"role":"primary","displayName":"Action Purple","canonical":"#351c58","tonalRamp":["oklch(15% 0.08 295)","oklch(25% 0.08 295)","oklch(35% 0.08 295)","oklch(45% 0.08 295)","oklch(55% 0.08 295)","oklch(65% 0.08 295)","oklch(80% 0.08 295)","oklch(95% 0.08 295)"]},
+      "purple-hover": {"role":"primary","displayName":"Hover Purple","canonical":"#472878","tonalRamp":["oklch(15% 0.09 295)","oklch(25% 0.09 295)","oklch(35% 0.09 295)","oklch(45% 0.09 295)","oklch(55% 0.09 295)","oklch(65% 0.09 295)","oklch(80% 0.09 295)","oklch(95% 0.09 295)"]},
+      "blue": {"role":"secondary","displayName":"Score Blue","canonical":"#315cb8","tonalRamp":["oklch(15% 0.13 260)","oklch(25% 0.13 260)","oklch(35% 0.13 260)","oklch(45% 0.13 260)","oklch(55% 0.13 260)","oklch(65% 0.13 260)","oklch(80% 0.13 260)","oklch(95% 0.13 260)"]},
+      "blue-soft": {"role":"secondary","displayName":"Pale Score Blue","canonical":"#d7e7ff","tonalRamp":["oklch(15% 0.07 260)","oklch(25% 0.07 260)","oklch(35% 0.07 260)","oklch(45% 0.07 260)","oklch(55% 0.07 260)","oklch(65% 0.07 260)","oklch(80% 0.07 260)","oklch(95% 0.07 260)"]},
+      "lilac": {"role":"tertiary","displayName":"Score Lilac","canonical":"#d9d0f8","tonalRamp":["oklch(15% 0.06 295)","oklch(25% 0.06 295)","oklch(35% 0.06 295)","oklch(45% 0.06 295)","oklch(55% 0.06 295)","oklch(65% 0.06 295)","oklch(80% 0.06 295)","oklch(95% 0.06 295)"]},
+      "line": {"role":"neutral","displayName":"Page Rule","canonical":"#c9d9eb","tonalRamp":["oklch(15% 0.025 250)","oklch(25% 0.025 250)","oklch(35% 0.025 250)","oklch(45% 0.025 250)","oklch(55% 0.025 250)","oklch(65% 0.025 250)","oklch(80% 0.025 250)","oklch(95% 0.025 250)"]},
+      "line-strong": {"role":"neutral","displayName":"Control Rule","canonical":"#a8bfd9","tonalRamp":["oklch(15% 0.03 250)","oklch(25% 0.03 250)","oklch(35% 0.03 250)","oklch(45% 0.03 250)","oklch(55% 0.03 250)","oklch(65% 0.03 250)","oklch(80% 0.03 250)","oklch(95% 0.03 250)"]},
+      "success": {"role":"neutral","displayName":"Success Green","canonical":"#176448","tonalRamp":["oklch(15% 0.08 165)","oklch(25% 0.08 165)","oklch(35% 0.08 165)","oklch(45% 0.08 165)","oklch(55% 0.08 165)","oklch(65% 0.08 165)","oklch(80% 0.08 165)","oklch(95% 0.08 165)"]},
+      "success-bg": {"role":"neutral","displayName":"Success Surface","canonical":"#e2f4eb","tonalRamp":["oklch(15% 0.035 165)","oklch(25% 0.035 165)","oklch(35% 0.035 165)","oklch(45% 0.035 165)","oklch(55% 0.035 165)","oklch(65% 0.035 165)","oklch(80% 0.035 165)","oklch(95% 0.035 165)"]},
+      "error": {"role":"tertiary","displayName":"Error Rose","canonical":"#9c2e4c","tonalRamp":["oklch(15% 0.13 15)","oklch(25% 0.13 15)","oklch(35% 0.13 15)","oklch(45% 0.13 15)","oklch(55% 0.13 15)","oklch(65% 0.13 15)","oklch(80% 0.13 15)","oklch(95% 0.13 15)"]},
+      "error-bg": {"role":"neutral","displayName":"Error Surface","canonical":"#fff0f4","tonalRamp":["oklch(15% 0.035 15)","oklch(25% 0.035 15)","oklch(35% 0.035 15)","oklch(45% 0.035 15)","oklch(55% 0.035 15)","oklch(65% 0.035 15)","oklch(80% 0.035 15)","oklch(95% 0.035 15)"]},
+      "warning": {"role":"tertiary","displayName":"Warning Amber","canonical":"#7d4e0e","tonalRamp":["oklch(15% 0.11 70)","oklch(25% 0.11 70)","oklch(35% 0.11 70)","oklch(45% 0.11 70)","oklch(55% 0.11 70)","oklch(65% 0.11 70)","oklch(80% 0.11 70)","oklch(95% 0.11 70)"]},
+      "warning-bg": {"role":"neutral","displayName":"Warning Surface","canonical":"#fff1d3","tonalRamp":["oklch(15% 0.055 70)","oklch(25% 0.055 70)","oklch(35% 0.055 70)","oklch(45% 0.055 70)","oklch(55% 0.055 70)","oklch(65% 0.055 70)","oklch(80% 0.055 70)","oklch(95% 0.055 70)"]}
+    },
+    "typographyMeta": {
+      "display": {"displayName":"Display","purpose":"Main page and console headlines."},
+      "title": {"displayName":"Title","purpose":"Training workbench and card headings."},
+      "body": {"displayName":"Body","purpose":"Instructions and normal reading text."},
+      "label": {"displayName":"Label","purpose":"Form labels and compact step labels."},
+      "control": {"displayName":"Control","purpose":"Action button text."}
+    },
+    "shadows": [
+      {"name":"score-marker-rest","value":"0 0 0 1px #8c79aa","purpose":"Separates a score marker from the staff line."},
+      {"name":"score-marker-active","value":"0 0 0 3px #d9d0f8","purpose":"Shows the active phrase marker."},
+      {"name":"score-marker-complete","value":"0 0 0 2px #c9dcff","purpose":"Shows a recorded phrase marker."},
+      {"name":"microphone-hover","value":"0 7px 17px rgba(40, 21, 65, 0.18)","purpose":"Adds a short hover lift to the console microphone."}
+    ],
+    "motion": [
+      {"name":"score-draw","value":"440ms cubic-bezier(0.16, 1, 0.3, 1)","purpose":"Draws a completed sample line into its marker."},
+      {"name":"score-node","value":"180ms ease","purpose":"Settles active and completed marker size and color."},
+      {"name":"button-state","value":"140ms ease","purpose":"Provides brief hover and pressed feedback for buttons."},
+      {"name":"reduced-motion","value":"0.01ms, one iteration","purpose":"Removes visible transition duration when reduced motion is requested."}
+    ],
+    "breakpoints": [
+      {"name":"header","value":"1040px"},
+      {"name":"mobile","value":"720px"},
+      {"name":"compact","value":"380px"}
+    ]
+  },
+  "components": [
+    {"name":"Primary Button","kind":"button","refersTo":"button-primary","description":"Main recording and form action.","html":"<button class=\"ds-btn-primary\" type=\"button\">Record sample 1</button>","css":".ds-btn-primary{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:10px 17px;border:1px solid transparent;border-radius:9px;background:var(--purple);color:var(--white);font:700 .86rem/1.2 var(--sans);cursor:pointer;transition:transform 140ms ease,background-color 140ms ease}.ds-btn-primary:hover:not(:disabled){background:var(--purple-hover);transform:translateY(-1px)}.ds-btn-primary:active:not(:disabled){transform:translateY(0)}.ds-btn-primary:focus-visible{outline:3px solid #6b54a6;outline-offset:3px}.ds-btn-primary:disabled{opacity:.58;cursor:not-allowed}"},
+    {"name":"Secondary Button","kind":"button","refersTo":"button-secondary","description":"Secondary action with an outlined purple treatment.","html":"<button class=\"ds-btn-secondary\" type=\"button\">Verify voice</button>","css":".ds-btn-secondary{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:10px 17px;border:1px solid #8c78b1;border-radius:9px;background:transparent;color:var(--purple);font:700 .86rem/1.2 var(--sans);cursor:pointer;transition:transform 140ms ease,background-color 140ms ease}.ds-btn-secondary:hover:not(:disabled){background:#eee9fb;transform:translateY(-1px)}.ds-btn-secondary:focus-visible{outline:3px solid #6b54a6;outline-offset:3px}"},
+    {"name":"Ghost Button","kind":"button","refersTo":"button-ghost","description":"Quiet action for reset and low-priority tasks.","html":"<button class=\"ds-btn-ghost\" type=\"button\">Reset</button>","css":".ds-btn-ghost{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:10px 17px;border:1px solid var(--line-strong);border-radius:9px;background:transparent;color:var(--ink-soft);font:700 .86rem/1.2 var(--sans);cursor:pointer;transition:transform 140ms ease,border-color 140ms ease,background-color 140ms ease}.ds-btn-ghost:hover:not(:disabled){border-color:#8774a7;background:#f1f6fc;color:var(--purple);transform:translateY(-1px)}.ds-btn-ghost:focus-visible{outline:3px solid #6b54a6;outline-offset:3px}"},
+    {"name":"Text Field","kind":"input","refersTo":"text-field","description":"Profile name and question input.","html":"<input class=\"ds-input\" type=\"text\" aria-label=\"Profile name\" placeholder=\"e.g. Alex\">","css":".ds-input{width:100%;min-height:46px;padding:10px 13px;border:1px solid var(--line-strong);border-radius:9px;background:#fbfdff;color:var(--ink);font:400 1rem/1.5 var(--sans)}.ds-input::placeholder{color:#766a86;opacity:1}.ds-input:hover{border-color:#7e6ca7}.ds-input:focus-visible{outline:3px solid #6b54a6;outline-offset:3px;border-color:var(--purple)}"},
+    {"name":"Tab Navigation","kind":"nav","refersTo":"navigation-tab","description":"Switches among training, console, Q&A, and settings panels.","html":"<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Main sections\"><button class=\"ds-tab is-active\" role=\"tab\" aria-selected=\"true\" type=\"button\">Voice training</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\" type=\"button\">Console</button></div>","css":".ds-tabs{display:flex;align-items:stretch;gap:5px}.ds-tab{min-height:54px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--ink-soft);font:650 .88rem/1.2 var(--sans);white-space:nowrap;cursor:pointer;transition:color 150ms ease,border-color 150ms ease,background-color 150ms ease}.ds-tab:hover{background:#edf5ff;color:var(--purple)}.ds-tab.is-active{border-bottom-color:var(--purple);color:var(--purple)}.ds-tab:focus-visible{outline:3px solid #6b54a6;outline-offset:3px}"},
+    {"name":"Query Chip","kind":"chip","refersTo":"chip","description":"Runs a suggested question from the console.","html":"<button class=\"ds-chip\" type=\"button\">What is quantum computing?</button>","css":".ds-chip{min-height:39px;padding:8px 13px;border:1px solid #aebed9;border-radius:999px;background:transparent;color:var(--ink-soft);font:650 .78rem/1.3 var(--sans);cursor:pointer;transition:color 150ms ease,border-color 150ms ease,background-color 150ms ease}.ds-chip:hover{border-color:var(--purple);background:#eee9fb;color:var(--purple)}.ds-chip:focus-visible{outline:3px solid #6b54a6;outline-offset:3px}"},
+    {"name":"Surface Card","kind":"card","refersTo":"card","description":"Contains a secondary console or settings block.","html":"<section class=\"ds-card\"><h2>Voice input</h2><p>Your words will appear here.</p></section>","css":".ds-card{padding:18px 19px 21px;border:1px solid var(--line-strong);border-radius:15px;background:var(--white);color:var(--ink)}.ds-card h2{margin:0 0 12px;font:700 .96rem/1.25 var(--sans)}.ds-card p{margin:0;color:var(--ink-soft);font:400 .94rem/1.55 var(--sans)}"},
+    {"name":"Voice Score Step","kind":"custom","refersTo":"voice-score","description":"Shows the phrase number, staff line, prompt, and saved state.","html":"<div class=\"ds-score-step is-complete\"><span class=\"ds-score-number\">01</span><span class=\"ds-staff\"><i></i></span><div><strong>Identity</strong><p>My voice is ready to assist.</p><small>Sample recorded</small></div></div>","css":".ds-score-step{display:grid;grid-template-columns:36px 54px minmax(0,1fr);min-height:93px;align-items:center;gap:14px;padding:14px 4px;border-top:1px solid #d7e4f2;color:var(--ink-soft);font-family:var(--sans)}.ds-score-number{font-size:.75rem;font-weight:700;color:var(--ink-muted)}.ds-staff{position:relative;width:48px;height:42px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 7px,#c5d3e4 7px,#c5d3e4 8px)}.ds-staff:after{position:absolute;top:50%;left:0;width:100%;height:2px;background:var(--blue);content:'';transform:scaleX(1);transform-origin:left center}.ds-staff i{position:absolute;z-index:1;top:50%;left:55%;width:11px;height:11px;border:2px solid var(--white);border-radius:50%;background:var(--blue);box-shadow:0 0 0 2px #c9dcff;transform:translate(-50%,-50%)}.ds-score-step strong{color:var(--blue);font-size:.73rem}.ds-score-step p{margin:3px 0 0;color:var(--ink);font:600 italic 1.1rem/1.35 'Palatino Linotype','Book Antiqua',Georgia,serif}.ds-score-step small{display:block;margin-top:4px;color:var(--success);font-size:.73rem}"}
+  ],
+  "narrative": {
+    "northStar": "The Rehearsal Score",
+    "overview": "Ether's interface treats voice training as a short, legible rehearsal: one prompt is in focus while two phrases wait in sequence. A light-blue page and dark-purple ink carry the training surface; a three-line score gives progress a small, specific visual identity without obscuring the words to speak or the recording controls.\n\nThe voice console, offline Q&A, and settings retain familiar web controls and use the same palette, rounded controls, and restrained state feedback. The interface is designed around local assistant use. Browser code is the source for this record; no live browser render was available during documentation.",
+    "keyCharacteristics": [
+      "Pale blue surfaces with dark-purple text and blue progress marks.",
+      "One active task area, with profile access in a quieter side panel.",
+      "State changes use short transitions; the score draw is the signature motion."
+    ],
+    "rules": [
+      {"name":"The Status Color Rule","body":"Reserve green, red, and amber for success, error, and warning states; pair status colors with readable text.","section":"colors"}
+    ],
+    "dos": [
+      "Do lead the home view with voice training and keep the current spoken prompt above its recording action.",
+      "Do use blue for progress, purple for the current action, and status colors only for status.",
+      "Do preserve the 3px focus outline and the reduced-motion override.",
+      "Do collapse the training columns to one column below 720px."
+    ],
+    "donts": [
+      "Don't let the score staff replace prompt text, sample numbering, or familiar recording controls.",
+      "Don't add a persistent shadow to flat resting cards.",
+      "Don't rely on color alone for saved, active, error, or success states.",
+      "Don't add external font or image dependencies to the local interface without a product need."
+    ]
+  }
+}

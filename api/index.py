@@ -21,14 +21,13 @@ load_dotenv()
 # Import voice engine modules
 from voice_engine.web_analyzer import WebAnalyzer
 from voice_engine.voice_trainer import VoiceTrainer
-from voice_engine.spotify_controller import SpotifyController
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VercelEther")
 
 app = FastAPI(
     title="Ether AI Voice - Serverless Edition",
-    description="High-Accuracy Voice AI, Web Analysis, and Spotify Hub on Vercel",
+    description="Voice profile training and question answering for Ether AI Voice",
     version="2.0.0"
 )
 
@@ -48,7 +47,6 @@ if os.path.exists(WEB_DIR):
 # Instantiate engines
 web_analyzer = WebAnalyzer()
 voice_trainer = VoiceTrainer(profiles_dir=os.path.join("/tmp", "voice_profiles") if not os.access(PARENT_DIR, os.W_OK) else None)
-spotify_controller = SpotifyController()
 
 
 class QueryRequest(BaseModel):
@@ -77,9 +75,8 @@ async def get_status():
     return {
         "status": "online",
         "environment": "vercel-serverless",
-        "engine": "browser-speech-api + cloud-speech",
-        "active_profile": voice_trainer.active_profile,
-        "spotify_configured": spotify_controller.is_configured
+        "engine": "serverless voice API",
+        "active_profile": voice_trainer.active_profile
     }
 
 
@@ -121,31 +118,6 @@ async def verify_voice(audio: UploadFile = File(...)):
     if not audio_bytes:
         raise HTTPException(status_code=400, detail="Empty audio payload")
     return voice_trainer.verify_voice(audio_bytes)
-
-
-@app.post("/api/spotify/play")
-async def spotify_play(req: QueryRequest):
-    return spotify_controller.search_and_play(req.query.strip())
-
-
-@app.post("/api/spotify/pause")
-async def spotify_pause():
-    return spotify_controller.pause()
-
-
-@app.post("/api/spotify/next")
-async def spotify_next():
-    return spotify_controller.next_track()
-
-
-@app.post("/api/spotify/previous")
-async def spotify_previous():
-    return spotify_controller.previous_track()
-
-
-@app.get("/api/spotify/status")
-async def spotify_status():
-    return spotify_controller.get_status()
 
 
 @app.post("/api/calibrate-noise")

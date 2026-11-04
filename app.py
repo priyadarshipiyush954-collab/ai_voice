@@ -24,7 +24,7 @@ logger = logging.getLogger("EtherApp")
 
 app = FastAPI(
     title="Ether AI Voice Assistant",
-    description="High-Accuracy Voice Recognition, Speaker Profile Training, Deep Web Analysis & Spotify Media Control",
+    description="Local voice recognition, speaker profile training, and offline question answering",
     version="2.0.0"
 )
 
