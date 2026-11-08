@@ -3,15 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#e9f4ff">
+  <meta name="theme-color" content="#130f2b">
   <title>Ether — Voice training</title>
-  <style>
-    @font-face {
-      font-family: "Plus Jakarta Sans";
-      font-display: swap;
-      src: local("Plus Jakarta Sans"), local("PlusJakartaSans");
-    }
-  </style>
+  <link rel="preload" href="/static/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -156,13 +150,6 @@
           <p class="hero-subtitle">Ask a question or try a voice command. Ether uses the speech and answer engines available in this runtime.</p>
         </div>
 
-        <div class="visualizer-wrapper" aria-label="Microphone sound visualization">
-          <canvas id="waveformCanvas" width="900" height="160" aria-hidden="true"></canvas>
-          <div class="visualizer-overlay" id="visualizerOverlay">
-            <span class="visualizer-state" id="visualizerStateText">Start listening to see the signal</span>
-          </div>
-        </div>
-
         <div class="mic-control-center">
           <div class="mic-halo-container">
             <button id="micBtn" class="mic-button" type="button" aria-label="Start voice listening">
@@ -171,8 +158,21 @@
                 <path d="M19 10.5v2a7 7 0 0 1-14 0v-2M12 19.5v2"></path>
               </svg>
             </button>
+            <span class="mic-ring" aria-hidden="true"></span>
+            <span class="mic-ring" aria-hidden="true"></span>
+            <span class="mic-ring" aria-hidden="true"></span>
           </div>
           <p class="mic-instructions"><span class="key-phrase">Say “Ether”</span> to wake · <span id="micStatusText">Ready</span></p>
+        </div>
+
+        <div class="visualizer-wrapper" aria-label="Microphone sound visualization">
+          <canvas id="waveformCanvas" width="900" height="160" aria-hidden="true"></canvas>
+          <div class="visualizer-overlay" id="visualizerOverlay">
+            <svg class="resting-signal" viewBox="0 0 800 100" preserveAspectRatio="none" aria-hidden="true">
+              <path vector-effect="non-scaling-stroke" d="M0 50Q50 10 100 50T200 50T300 50T400 50T500 50T600 50T700 50T800 50"></path>
+            </svg>
+            <span class="visualizer-state" id="visualizerStateText">Start listening to see the signal</span>
+          </div>
         </div>
 
         <div class="feature-chips" aria-label="Try a sample question">
@@ -183,7 +183,7 @@
       </div>
 
       <div class="console-cards-grid">
-        <section class="glass-card transcript-card" aria-labelledby="transcriptTitle">
+        <section class="glass-card anim-card-reveal transcript-card" aria-labelledby="transcriptTitle">
           <div class="card-header">
             <h2 class="card-title" id="transcriptTitle">Voice input</h2>
             <div class="badge-group">
@@ -196,7 +196,7 @@
           </div>
         </section>
 
-        <section class="glass-card response-card" aria-labelledby="responseTitle">
+        <section class="glass-card anim-card-reveal response-card" aria-labelledby="responseTitle">
           <div class="card-header">
             <h2 class="card-title" id="responseTitle">Ether response</h2>
             <button id="speakResponseBtn" class="btn-icon" type="button" aria-label="Read the response aloud" title="Read response aloud">
@@ -245,7 +245,7 @@
       </header>
 
       <div class="settings-grid">
-        <section class="glass-card" aria-labelledby="speechModelTitle">
+        <section class="glass-card anim-card-reveal" aria-labelledby="speechModelTitle">
           <div class="card-header"><h2 class="card-title" id="speechModelTitle">Speech-to-text model</h2></div>
           <div class="card-body">
             <div class="form-group">
@@ -265,7 +265,7 @@
           </div>
         </section>
 
-        <section class="glass-card" aria-labelledby="calibrationTitle">
+        <section class="glass-card anim-card-reveal" aria-labelledby="calibrationTitle">
           <div class="card-header"><h2 class="card-title" id="calibrationTitle">Microphone calibration</h2></div>
           <div class="card-body">
             <div class="form-group">
