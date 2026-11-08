@@ -364,30 +364,24 @@ function drawVisualizer() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const barWidth = (canvas.width / bufferLength) * 1.5;
-    let x = 0;
+    // Mirrored bars from the centre: speech energy sits in the low bins, so
+    // the loudest ones land in the middle. Colours match --champagne / --violet.
+    const bins = Math.min(bufferLength, 48);
+    const step = canvas.width / 2 / bins;
+    const barWidth = Math.max(2, step * 0.56);
+    const cx = canvas.width / 2;
+    ctx.fillStyle = state.isListening ? '#ebcb93' : '#8f74ff';
 
-    for (let i = 0; i < bufferLength; i++) {
-      const v = dataArray[i];
-      const barHeight = (v / 255) * canvas.height * 0.85;
-
-      if (state.isListening) {
-        // Purple spectrum while the microphone is active.
-        const r = 78 + Math.floor((v / 255) * 72);
-        const g = 49 + Math.floor((v / 255) * 38);
-        const b = 128 + Math.floor((v / 255) * 90);
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      } else {
-        // Blue spectrum while idle.
-        const r = 49 + Math.floor((v / 255) * 35);
-        const g = 87 + Math.floor((v / 255) * 61);
-        const b = 166 + Math.floor((v / 255) * 70);
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      }
-
-      ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-      x += barWidth;
+    for (let i = 0; i < bins; i++) {
+      const h = Math.max(3, (dataArray[i] / 255) * canvas.height * 0.9);
+      const y = (canvas.height - h) / 2;
+      ctx.globalAlpha = 1 - (i / bins) * 0.7;
+      ctx.beginPath();
+      ctx.roundRect(cx + i * step, y, barWidth, h, barWidth / 2);
+      ctx.roundRect(cx - (i + 1) * step, y, barWidth, h, barWidth / 2);
+      ctx.fill();
     }
+    ctx.globalAlpha = 1;
 
     // Update acoustic meters from audio data
     updateAcousticMeters(dataArray, bufferLength);
@@ -1268,6 +1262,7 @@ function escapeAttr(str) {
 
 window.addEventListener('DOMContentLoaded', () => {
   initTabs();
+  initScrollReveal();
   initFeatureChips();
   setupSpeechRecognition();
   initWebSearch();
